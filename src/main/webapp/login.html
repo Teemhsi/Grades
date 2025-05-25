@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="loginstyle.css">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<body>
+<div class="divLogin">
+    <h2 style="text-align: center;">Welcome!</h2>
+    <h4 style="text-align: center;">Please enter your credentials to log in</h4>
+
+    <form action="LoginHandler" method="post">
+        <table class="loginTable">
+            <tr>
+                <td><input type="email" name="email" placeholder="Email" required></td>
+            </tr>
+            <tr>
+                <td><input type="password" name="password" placeholder="Password" required></td>
+            </tr>
+            <!-- Error message row -->
+            <tr th:if="${errorMsg}">
+                <td colspan="2" style="color: red; text-align: center;" th:text="${errorMsg}"></td>
+            </tr>
+            <!-- Submit button row -->
+            <tr>
+                <td style="text-align: center;" colspan="2"><input type="submit" value="Login"></td>
+            </tr>
+        </table>
+    </form>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Esito</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            cursor: pointer;
+        }
+
+        th a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        th span {
+            margin-left: 5px;
+        }
+        .red-text {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Fix for the PUBBLICA button */
+        .nav-center button {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #1ABC9C;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .nav-center button:hover {
+            background-color: #16A085;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Studenti Iscritti all'Appello</h1>
+    <div class="user-info">
+        <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
+        <span th:text="'Role: ' + ${session.user.ruolo}">Role: professor</span>
+    </div>
+</header>
+
+<nav style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="nav-left">
+        <a th:href="@{/AppelliStudente(id=${idCorsoStudente})}">Go Back</a>
+    </div>
+    <div class="nav-right">
+        <a href="LogoutHandler">Logout</a>
+    </div>
+</nav>
+
+
+<div class="container" th:if="${IscrizionPresente > 0}">
+    <!-- Mostra tabella solo se stato valutazione è Pubblicato -->
+    <div th:if="${iscrizionestudente.statoValutazione == 'Pubblicato' or iscrizionestudente.statoValutazione == 'Rifiutato' or iscrizionestudente.statoValutazione == 'Verbalizzato'} ">
+        <table>
+            <thead>
+            <tr>
+                <th>id_studente</th>
+                <th>id_appello</th>
+                <th>voto</th>
+                <th>stato_valutazione</th>
+                <div th:if="${iscrizionestudente.statoValutazione == 'Rifiutato'}">
+                    <th>note</th>
+                </div>
+                <th>data_appello</th>
+                <th>nome_corso</th>
+                <th>matricola</th>
+                <th>nome</th>
+                <th>cognome</th>
+                <th>corso di laurea</th>
+                <th>azione</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${iscrizionestudente.idStudente}"></td>
+                <td th:text="${iscrizionestudente.idAppello}"></td>
+                <td th:text="${iscrizionestudente.voto}"
+                    th:classappend="${iscrizionestudente.voto == 'Rimandato' or iscrizionestudente.voto == 'Riprovato'} ? 'red-text'">
+                    Voto</td>
+                <td th:text="${iscrizionestudente.statoValutazione}"
+                    th:classappend="${iscrizionestudente.statoValutazione == 'Rifiutato'} ? 'red-text'">
+                    Stato
+                </td>
+                <div th:if="${iscrizionestudente.statoValutazione == 'Rifiutato'}">
+                    <td>il voto è stato rifiutato</td>
+                </div>
+                <td th:text="${appellostudente.dataAppello}"></td>
+                <td th:text="${corsostudente.nome}">nome</td>
+                <td th:text="${studentdetail.matricola}">matricola</td>
+                <td th:text="${studentdetail.nome}">nome</td>
+                <td th:text="${studentdetail.cognome}">cognome</td>
+                <td th:text="${studentdetail.corsoDiLaurea}">corsoDiLaurea</td>
+                <td>
+                    <div th:if="${iscrizionestudente.statoValutazione == 'Pubblicato' and
+             #lists.contains(votiValidi, iscrizionestudente.voto)}">
+                        <form th:action="@{/RifiutaVoto}" method="POST">
+                            <input type="hidden" name="idStudente" th:value="${iscrizionestudente.idStudente}" />
+                            <input type="hidden" name="idAppello" th:value="${iscrizionestudente.idAppello}" />
+                            <input type="hidden" name="idCorso" th:value="${idCorsoStudente}" />
+                            <button type="submit">Rifiuta</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Messaggio se lo stato NON è Pubblicato -->
+    <div th:if="${iscrizionestudente.statoValutazione == 'Inserito' or iscrizionestudente.statoValutazione == 'Non inserito'} ">
+        <p>Voto ancora non definito.</p>
+    </div>
+</div>
+<div class="container" th:if="${IscrizionPresente == 0}">
+    <p>If you cannot see any call details, you might not be enrolled in the call.</p>
+</div>
+
+<footer>
+    <p>&copy; 2025 Student Portal. All Rights Reserved.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Professor's Home Page</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header>
+  <h1>Welcome to the Professor's Home Page</h1>
+  <div class="user-info">
+    <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
+    <span th:text="'Role:  ' + ${session.user.ruolo}">Role: professor</span>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-left">
+    <a th:href="@{/Verbali}">Elenco Verbali</a>
+  </div>
+  <div class="nav-right">
+    <a href="LogoutHandler">Logout</a>
+  </div>
+</nav>
+
+
+<div class="container" th:if="${corsi.size() > 0}">
+  <p>As a professor, you can manage your courses and students here. Select one of your courses below.</p>
+  <p>Total Courses Held: <span th:text="${corsi.size}">0</span></p>
+
+  <div class="course-list">
+    <div th:each="corso : ${corsi}" class="course-item">
+      <span class="course-name" th:text="${corso.nome}">Course Name</span>
+      <a th:href="@{/Appelli(id=${corso.idCorso})}" class="select-button">Select</a>
+    </div>
+  </div>
+</div>
+<div class="container" th:if="${corsi.size() == 0}">
+  <p>If you cannot see any courses, please contact the head office.</p>
+</div>
+
+<footer>
+  <p>&copy; 2025 Professor Portal. All Rights Reserved.</p>
+</footer>
+</body>
+</html>

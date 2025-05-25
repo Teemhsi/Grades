@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Appelli del Corso</title>
+  <link rel="stylesheet" href="styles.css" />
+
+</head>
+<body>
+<header>
+  <h1>Seleziona un Appello</h1>
+  <div class="user-info">
+    <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
+    <span th:text="'Role:  ' + ${session.user.ruolo}">Role: professor</span>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-left">
+    <a href="student-home">Go Back</a>
+  </div>
+  <div class="nav-right">
+    <a href="LogoutHandler">Logout</a>
+  </div>
+</nav>
+
+<div class="course-info">
+  <p>(DEBUG): Select a call for course ID <span th:text="${idCorso}">ID Corso</span>.</p>
+  <p>Total Calls Found: <span th:text="${appellistudente.size}">0</span></p>
+
+</div>
+
+<div class="appello-list">
+  <div th:each="appello : ${appellistudente}" class="appello-item">
+    <span class="appello-date" th:text="${appello.dataAppello}">Data Appello</span>
+    <a th:href="@{/GestioneVotiStudente(idAppello=${appello.idAppello}, idCorso=${idCorso})}" class="select-button">Seleziona</a>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Student Portal. All Rights Reserved.</p>
+</footer>
+</body>
+</html>
