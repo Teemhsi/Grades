@@ -18,13 +18,18 @@ import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+/**
+ * Servlet per visualizzare i verbali associati al docente autenticato.
+ * Recupera i verbali unici (basati sul codice verbale) e li passa alla view Thymeleaf.
+ */
 @WebServlet("/Verbali")
 public class VerbaliServlet extends HttpServlet {
+
     private TemplateEngine templateEngine;
     private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
@@ -46,11 +51,19 @@ public class VerbaliServlet extends HttpServlet {
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
+    /**
+     * Gestisce la richiesta GET per mostrare la lista dei verbali del docente.
+     * Verifica l'autenticazione e autorizzazione del docente.
+     *
+     * @param req  richiesta HTTP
+     * @param resp risposta HTTP
+     * @throws ServletException in caso di errori servlet
+     * @throws IOException      in caso di errori I/O
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
-        // Controllo autenticazione
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
             resp.sendRedirect(req.getContextPath() + "/");
@@ -61,15 +74,14 @@ public class VerbaliServlet extends HttpServlet {
             VerbaleDAO verbaleDAO = new VerbaleDAO(connection);
             List<Object[]> rawResults = verbaleDAO.findVerbaliByDocenteId(docente.getIdUtente());
 
-            // Extract unique verbali (by codice_verbale)
             Set<String> uniqueCodes = new LinkedHashSet<>();
             List<VerbaleEntry> verbali = new ArrayList<>();
 
             for (Object[] row : rawResults) {
-                String codiceVerbale = ((it.tiw.beans.Verbale) row[0]).getCodiceVerbale();
-                java.sql.Timestamp dataCreazione = ((it.tiw.beans.Verbale) row[0]).getDataCreazione();
+                it.tiw.beans.Verbale verbale = (it.tiw.beans.Verbale) row[0];
+                String codiceVerbale = verbale.getCodiceVerbale();
+                java.sql.Timestamp dataCreazione = verbale.getDataCreazione();
 
-                // Only add if we haven't seen this codice before
                 if (!uniqueCodes.contains(codiceVerbale)) {
                     uniqueCodes.add(codiceVerbale);
                     verbali.add(new VerbaleEntry(codiceVerbale, dataCreazione));
@@ -96,7 +108,9 @@ public class VerbaliServlet extends HttpServlet {
         }
     }
 
-    // Simplified inner class for verbali list
+    /**
+     * Classe interna per rappresentare un singolo verbale semplificato per la view.
+     */
     public static class VerbaleEntry {
         private final String codiceVerbale;
         private final java.sql.Timestamp dataCreazione;
@@ -106,7 +120,12 @@ public class VerbaliServlet extends HttpServlet {
             this.dataCreazione = dataCreazione;
         }
 
-        public String getCodiceVerbale() { return codiceVerbale; }
-        public java.sql.Timestamp getDataCreazione() { return dataCreazione; }
+        public String getCodiceVerbale() {
+            return codiceVerbale;
+        }
+
+        public java.sql.Timestamp getDataCreazione() {
+            return dataCreazione;
+        }
     }
 }

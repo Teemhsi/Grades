@@ -1,5 +1,6 @@
 package it.tiw.controller.student;
 
+import it.tiw.beans.Utente;
 import it.tiw.dao.IscrizioneDAO;
 import it.tiw.util.DbConnectionHandler;
 import jakarta.servlet.ServletException;
@@ -23,14 +24,19 @@ public class RifiutaVotoServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html;charset=UTF-8");
+
+        // Controllo autenticazione e ruolo
+        Utente student = (Utente) req.getSession().getAttribute("user");
+        if (student == null || !"studente".equalsIgnoreCase(student.getRuolo())) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
+
+        // Parametri obbligatori
         String idStudenteStr = req.getParameter("idStudente");
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
-       /* System.out.println(req.getParameter("idStudente"));
-        System.out.println(req.getParameter("idAppello"));
-        System.out.println(req.getParameter("idCorso"));*/
-
-
 
         if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");
@@ -42,6 +48,12 @@ public class RifiutaVotoServlet extends HttpServlet {
             int idAppello = Integer.parseInt(idAppelloStr);
             int idCorso = Integer.parseInt(idCorsoStr);
 
+            // Ulteriore controllo: l'idStudente passato deve corrispondere all'utente loggato
+            if (idStudente != student.getIdUtente()) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Operazione non autorizzata");
+                return;
+            }
+
             IscrizioneDAO iscrizioneDAO = new IscrizioneDAO(connection);
             boolean success = iscrizioneDAO.rifiutaVotipubblicati(idAppello, idStudente);
 
@@ -50,7 +62,7 @@ public class RifiutaVotoServlet extends HttpServlet {
                 return;
             }
 
-            // Redirect di nuovo alla pagina degli iscritti all'appello
+            // Redirect alla pagina gestione voti dello studente
             resp.sendRedirect(req.getContextPath() + "/GestioneVotiStudente?idAppello=" + idAppello + "&idCorso=" + idCorso);
 
         } catch (NumberFormatException e) {

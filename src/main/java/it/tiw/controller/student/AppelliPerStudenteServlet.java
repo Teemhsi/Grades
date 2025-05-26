@@ -1,7 +1,5 @@
 package it.tiw.controller.student;
 
-
-
 import it.tiw.beans.Appello;
 import it.tiw.beans.Utente;
 import it.tiw.dao.AppelloDAO;
@@ -13,17 +11,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
+import org.thymeleaf.web.IWebExchange;
+import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-
+/**
+ * Servlet che mostra gli appelli di un corso per uno studente autenticato.
+ */
 @WebServlet("/AppelliStudente")
 public class AppelliPerStudenteServlet extends HttpServlet {
     private TemplateEngine templateEngine;
@@ -47,16 +47,34 @@ public class AppelliPerStudenteServlet extends HttpServlet {
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
+    /**
+     * Gestisce la richiesta GET per mostrare gli appelli di un corso specifico per lo studente loggato.
+     *
+     * @param req  richiesta HTTP
+     * @param resp risposta HTTP
+     * @throws ServletException in caso di errore servlet
+     * @throws IOException      in caso di errore I/O
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
-        // Retrieve course ID from the request parameter
-        int idCorso = Integer.parseInt(req.getParameter("id"));
+        // Recupera e valida il parametro idCorso
+        String idCorsoParam = req.getParameter("id");
+        int idCorso;
+        try {
+            if (idCorsoParam == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'id' mancante");
+                return;
+            }
+            idCorso = Integer.parseInt(idCorsoParam);
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'id' non valido");
+            return;
+        }
 
-        // Retrieve the logged-in student from the session
+        // Recupera utente dalla sessione e verifica ruolo
         Utente student = (Utente) req.getSession().getAttribute("user");
-
         if (student == null || !"studente".equalsIgnoreCase(student.getRuolo())) {
             resp.sendRedirect(req.getContextPath() + "/");
             return;
@@ -65,24 +83,21 @@ public class AppelliPerStudenteServlet extends HttpServlet {
         try {
             AppelloDAO appelloDAO = new AppelloDAO(connection);
 
-            // Fetch appelli for the selected course and student
+            // Ottiene gli appelli per il corso e studente, ordinati decrescente
             List<Appello> appelli = appelloDAO.findAppelliByCorsoAndStudenteOrderedDesc(idCorso, student.getIdUtente());
 
-            // Prepare Thymeleaf context to pass data to the view
             IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
             WebContext ctx = new WebContext(webExchange, req.getLocale());
 
-            // Set variables for Thymeleaf
             ctx.setVariable("appellistudente", appelli);
             ctx.setVariable("idCorso", idCorso);
 
-            // Render the page
             templateEngine.process("studenteAppelliPerCorso", ctx, resp.getWriter());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore database: " + e.getMessage());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore server: " + e.getMessage());
         }
     }
 

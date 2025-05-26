@@ -1,5 +1,7 @@
 package it.tiw.controller.professor;
 
+import it.tiw.beans.Utente;
+import it.tiw.dao.AppelloDAO;
 import it.tiw.dao.IscrizioneDAO;
 import it.tiw.util.DbConnectionHandler;
 import jakarta.servlet.ServletException;
@@ -12,8 +14,16 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * Servlet per pubblicare i voti inseriti relativi a un appello specifico.
+ * <p>
+ * Riceve tramite POST gli idAppello e idCorso, valida i parametri, chiama il DAO
+ * per pubblicare i voti, e in caso di successo effettua un redirect verso la pagina
+ * degli iscritti all'appello.
+ */
 @WebServlet("/PubblicaVoti")
 public class PubblicaVotiServlet extends HttpServlet {
+
     private Connection connection;
 
     @Override
@@ -21,20 +31,46 @@ public class PubblicaVotiServlet extends HttpServlet {
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
+    /**
+     * Gestisce la richiesta POST per pubblicare i voti di un appello.
+     *
+     * @param req  HttpServletRequest con parametri idAppello e idCorso
+     * @param resp HttpServletResponse per inviare risposta o errori HTTP
+     * @throws ServletException in caso di errori servlet
+     * @throws IOException      in caso di errori di I/O
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
-        if (idAppelloStr == null || idCorsoStr == null) {
+        Utente docente = (Utente) req.getSession().getAttribute("user");
+        if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
+
+        if (idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");
             return;
         }
 
+        int idAppello, idCorso;
         try {
-            int idAppello = Integer.parseInt(idAppelloStr);
-            int idCorso = Integer.parseInt(idCorsoStr);
+            idAppello = Integer.parseInt(idAppelloStr);
+            idCorso = Integer.parseInt(idCorsoStr);
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+            return;
+        }
 
+        try {
+            AppelloDAO appelloDAO = new AppelloDAO(connection);
+            // Verifica che l'appello appartenga al docente
+            if (appelloDAO.findAppelloDateByCourseCallDocente(idCorso, docente.getIdUtente(), idAppello) == null) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso negato all'appello");
+                return;
+            }
             IscrizioneDAO iscrizioneDAO = new IscrizioneDAO(connection);
             boolean success = iscrizioneDAO.pubblicaVotiInseriti(idAppello);
 
@@ -42,15 +78,21 @@ public class PubblicaVotiServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Nessun voto pubblicato o errore nel DB");
                 return;
             }
-            //iscrizioneDAO.sendEmailOnPublish(idAppello);
 
-            // Redirect di nuovo alla pagina con messaggio opzionale
+            // Redirect alla pagina degli iscritti all'appello con idAppello e idCorso
             resp.sendRedirect(req.getContextPath() + "/IscrittiAppello?idAppello=" + idAppello + "&idCorso=" + idCorso);
 
-        } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore DB: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            DbConnectionHandler.closeConnection(connection);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

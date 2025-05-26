@@ -21,6 +21,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Servlet per la visualizzazione degli appelli di un corso associato al docente loggato.
+ */
 @WebServlet("/Appelli")
 public class AppelliServlet extends HttpServlet {
     private TemplateEngine templateEngine;
@@ -48,10 +51,6 @@ public class AppelliServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
-        // Retrieve course ID from the request parameter
-        int idCorso = Integer.parseInt(req.getParameter("id"));
-
-        // Retrieve the logged-in professor from the session
         Utente professor = (Utente) req.getSession().getAttribute("user");
 
         if (professor == null || !"docente".equalsIgnoreCase(professor.getRuolo())) {
@@ -59,27 +58,41 @@ public class AppelliServlet extends HttpServlet {
             return;
         }
 
+        int idCorso;
+        try {
+            String idParam = req.getParameter("id");
+            if (idParam == null) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro id mancante");
+                return;
+            }
+            idCorso = Integer.parseInt(idParam);
+            if (idCorso <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro id non valido");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro id non valido");
+            return;
+        }
+
         try {
             AppelloDAO appelloDAO = new AppelloDAO(connection);
-
-            // Fetch appelli for the selected course and professor
             List<Appello> appelli = appelloDAO.findAppelliByCorsoAndDocenteOrderedDesc(idCorso, professor.getIdUtente());
 
-            // Prepare Thymeleaf context to pass data to the view
             IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
             WebContext ctx = new WebContext(webExchange, req.getLocale());
 
-            // Set variables for Thymeleaf
             ctx.setVariable("appelli", appelli);
             ctx.setVariable("idCorso", idCorso);
 
-            // Render the page
             templateEngine.process("appelliPerCorso", ctx, resp.getWriter());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            log("Database error in AppelliServlet", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            log("Unexpected error in AppelliServlet", e);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -88,7 +101,7 @@ public class AppelliServlet extends HttpServlet {
         try {
             DbConnectionHandler.closeConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace();
+            log("Error closing DB connection in AppelliServlet", e);
         }
     }
 }

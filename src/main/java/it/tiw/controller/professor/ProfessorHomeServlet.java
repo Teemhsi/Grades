@@ -19,11 +19,17 @@ import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Servlet che gestisce la home page del docente, mostrando i corsi assegnati.
+ * <p>
+ * Controlla che l'utente sia autenticato e abbia ruolo "docente".
+ * Recupera i corsi associati al docente e li passa al template Thymeleaf.
+ */
 @WebServlet("/professor-home")
 public class ProfessorHomeServlet extends HttpServlet {
+
     private TemplateEngine templateEngine;
     private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
@@ -45,10 +51,16 @@ public class ProfessorHomeServlet extends HttpServlet {
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
+    /**
+     * Gestisce la richiesta GET per mostrare la home del docente con i corsi associati.
+     *
+     * @param req  HttpServletRequest contenente sessione e parametri
+     * @param resp HttpServletResponse per output HTML o errori HTTP
+     * @throws IOException in caso di errori di I/O
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("text/html;charset=UTF-8");
-        List<Corso> corsi = null;
 
         Utente professor = (Utente) req.getSession().getAttribute("user");
 
@@ -56,22 +68,21 @@ public class ProfessorHomeServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
-        corsi = new ArrayList<>();
+
         try {
+            CorsoDAO corsoDAO = new CorsoDAO(connection);
+            List<Corso> corsi = corsoDAO.findCorsiByDocenteIdOrderedDesc(professor.getIdUtente());
+
             IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
             WebContext ctx = new WebContext(webExchange, req.getLocale());
-
-            CorsoDAO corsoDAO = new CorsoDAO(connection);
-
-            corsi = corsoDAO.findCorsiByDocenteIdOrderedDesc(professor.getIdUtente());
             ctx.setVariable("corsi", corsi);
 
             templateEngine.process("professorHome", ctx, resp.getWriter());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore database: " + e.getMessage());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore server: " + e.getMessage());
         }
     }
 

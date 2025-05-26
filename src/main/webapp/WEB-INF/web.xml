@@ -19,6 +19,35 @@
         <param-name>dbDriver</param-name>
         <param-value>com.mysql.cj.jdbc.Driver</param-value>
     </context-param>
+
+
+    <!-- Configurazione pagina errore 400 Bad Request -->
+    <error-page>
+        <error-code>400</error-code>
+        <location>/errorPages/400.html</location>
+    </error-page>
+
+    <!-- Configurazione pagina errore 404 Not Found -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/errorPages/404.html</location>
+    </error-page>
+
+    <!-- Configurazione pagina errore 500 Internal Server Error -->
+    <error-page>
+        <error-code>500</error-code>
+        <location>/errorPages/500.html</location>
+    </error-page>
+
+    <!-- Configurazione pagina errore generica per eccezioni non gestite -->
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/errorPages/500.html</location>
+    </error-page>
+
+
+
+
     <filter>
         <filter-name>LoginCheck</filter-name>
         <filter-class>it.tiw.filter.IsLoggedGloballyCheck</filter-class>

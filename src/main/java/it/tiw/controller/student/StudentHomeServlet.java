@@ -19,7 +19,6 @@ import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/student-home")
@@ -48,22 +47,20 @@ public class StudentHomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("text/html;charset=UTF-8");
-        List<Corso> corsi = null;
 
         Utente studente = (Utente) req.getSession().getAttribute("user");
-
         if (studente == null || !"studente".equalsIgnoreCase(studente.getRuolo())) {
             resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
-        corsi = new ArrayList<>();
+
         try {
+            CorsoDAO corsoDAO = new CorsoDAO(connection);
+            List<Corso> corsi = corsoDAO.findCorsiByStudentIdOrderedDesc(studente.getIdUtente());
+
             IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
             WebContext ctx = new WebContext(webExchange, req.getLocale());
 
-            CorsoDAO corsoDAO = new CorsoDAO(connection);
-
-            corsi = corsoDAO.findCorsiByStudentIdOrderedDesc(studente.getIdUtente());
             ctx.setVariable("corsi", corsi);
 
             templateEngine.process("studentHome", ctx, resp.getWriter());
@@ -72,6 +69,17 @@ public class StudentHomeServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
         } catch (Exception e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            getServletContext().log("Error closing database connection", e);
         }
     }
 }

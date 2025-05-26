@@ -1,4 +1,3 @@
-// GestioneVotiStudenteServlet.java
 package it.tiw.controller.student;
 
 import it.tiw.beans.*;
@@ -22,6 +21,10 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Servlet per la gestione dei voti dello studente, mostra i dettagli
+ * dell'iscrizione e permette di visualizzare/modificare il voto.
+ */
 @WebServlet("/GestioneVotiStudente")
 public class GestioneVotiStudenteServlet extends HttpServlet {
     private TemplateEngine templateEngine;
@@ -49,19 +52,18 @@ public class GestioneVotiStudenteServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
-        // Check if user is logged in and is a student
+        // Controllo autenticazione e ruolo
         Utente utente = (Utente) req.getSession().getAttribute("user");
         if (utente == null || !"studente".equalsIgnoreCase(utente.getRuolo())) {
             resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
 
-        // Get parameters
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
         if (idAppelloStr == null || idCorsoStr == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing required parameters");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri obbligatori mancanti");
             return;
         }
 
@@ -70,51 +72,44 @@ public class GestioneVotiStudenteServlet extends HttpServlet {
             int idCorso = Integer.parseInt(idCorsoStr);
             int idStudente = utente.getIdUtente();
 
-            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
-            WebContext ctx = new WebContext(webExchange, req.getLocale());
-
             IscrizioneDAO iscrizioneDAO = new IscrizioneDAO(connection);
             List<Object[]> risultati = iscrizioneDAO.findIscrizioneByIdCorsoIdAppelloStudentId(idStudente, idAppello, idCorso);
 
-            if (risultati.isEmpty()) {
-                // No enrollment found - redirect back or show error
-                //resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Iscrizione non trovata");
-                //return;
-                ctx.setVariable("IscrizionPresente", 0);
+            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
+            WebContext ctx = new WebContext(webExchange, req.getLocale());
 
-            }else{
+            if (risultati.isEmpty()) {
+                // Nessuna iscrizione trovata
+                ctx.setVariable("IscrizionPresente", 0);
+            } else {
                 Object[] risultato = risultati.get(0);
 
-
-                Iscrizione iscrizione = (Iscrizione) risultato[0]; // Cast to your Iscrizione bean class
-                Appello appello = (Appello )risultato[1];    // Cast to your Appello bean class
-                Corso corso = (Corso) risultato[2];      // Cast to your Corso bean class
+                Iscrizione iscrizione = (Iscrizione) risultato[0];
+                Appello appello = (Appello) risultato[1];
+                Corso corso = (Corso) risultato[2];
                 Studente studente = (Studente) risultato[3];
-                System.out.println("result are : " + studente.toString());
 
                 ctx.setVariable("iscrizionestudente", iscrizione);
                 ctx.setVariable("appellostudente", appello);
                 ctx.setVariable("corsostudente", corso);
-                ctx.setVariable("IscrizionPresente", 1);
                 ctx.setVariable("studentdetail", studente);
-                ctx.setVariable("votiValidi", Arrays.asList("18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30 e lode"));
-
+                ctx.setVariable("IscrizionPresente", 1);
+                ctx.setVariable("votiValidi", Arrays.asList(
+                        "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "30 e lode"));
             }
+
             ctx.setVariable("idCorsoStudente", idCorso);
 
             templateEngine.process("gestioneVotiStudente", ctx, resp.getWriter());
-            //resp.sendRedirect(req.getContextPath() + "/Funcase");
 
         } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid parameter format");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Formato parametro non valido");
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore database: " + e.getMessage());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore server: " + e.getMessage());
         }
     }
-
-    // doPost method will be implemented later for grade rejection functionality
 
     @Override
     public void destroy() {
@@ -123,8 +118,7 @@ public class GestioneVotiStudenteServlet extends HttpServlet {
                 connection.close();
             }
         } catch (SQLException e) {
-            // Log the error but don't throw exception in destroy()
-            getServletContext().log("Error closing database connection", e);
+            getServletContext().log("Errore chiusura connessione database", e);
         }
     }
 }
