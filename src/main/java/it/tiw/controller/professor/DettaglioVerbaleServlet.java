@@ -79,32 +79,35 @@ public class DettaglioVerbaleServlet extends HttpServlet {
 
         try {
             VerbaleDAO verbaleDAO = new VerbaleDAO(connection);
-            List<Object[]> risultati = verbaleDAO.findVerbaliByDocenteId(docente.getIdUtente());
+            List<Object[]> rawResults = verbaleDAO.findVerbaliByDocenteId(docente.getIdUtente());
 
-            List<Object[]> dettagliFiltrati = new ArrayList<>();
-            for (Object[] row : risultati) {
+            // Filter results by codice verbale
+            List<VerbaleDetailEntry> dettagliVerbale = new ArrayList<>();
+            for (Object[] row : rawResults) {
                 Verbale verbale = (Verbale) row[0];
                 if (codiceVerbale.equals(verbale.getCodiceVerbale())) {
-                    dettagliFiltrati.add(row);
+                    java.sql.Date dataAppello = (java.sql.Date) row[1];
+                    String nomeCorso = (String) row[2];
+                    Studente studente = (Studente) row[3];
+
+                    dettagliVerbale.add(new VerbaleDetailEntry(verbale, dataAppello, nomeCorso, studente));
                 }
             }
 
-            if (dettagliFiltrati.isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Nessun verbale trovato con il codice fornito");
+            if (dettagliVerbale.isEmpty()) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Verbale non trovato");
                 return;
             }
 
-            // Rendering Thymeleaf
             IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
             WebContext ctx = new WebContext(webExchange, req.getLocale());
-
-            ctx.setVariable("dettagliVerbale", dettagliFiltrati);
+            ctx.setVariable("dettagliVerbale", dettagliVerbale);
             ctx.setVariable("codiceVerbale", codiceVerbale);
 
             templateEngine.process("dettaglioVerbale", ctx, resp.getWriter());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore durante l'accesso al database");
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore DB: " + e.getMessage());
         }
     }
 
@@ -113,7 +116,27 @@ public class DettaglioVerbaleServlet extends HttpServlet {
         try {
             DbConnectionHandler.closeConnection(connection);
         } catch (SQLException e) {
-            e.printStackTrace(); // Considera loggatura migliore in produzione
+            e.printStackTrace();
         }
+    }
+
+    // Inner class for verbale details
+    public static class VerbaleDetailEntry {
+        private final Verbale verbale;
+        private final java.sql.Date dataAppello;
+        private final String nomeCorso;
+        private final Studente studente;
+
+        public VerbaleDetailEntry(Verbale verbale, java.sql.Date dataAppello, String nomeCorso, Studente studente) {
+            this.verbale = verbale;
+            this.dataAppello = dataAppello;
+            this.nomeCorso = nomeCorso;
+            this.studente = studente;
+        }
+
+        public Verbale getVerbale() { return verbale; }
+        public java.sql.Date getDataAppello() { return dataAppello; }
+        public String getNomeCorso() { return nomeCorso; }
+        public Studente getStudente() { return studente; }
     }
 }
