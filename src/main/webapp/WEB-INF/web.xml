@@ -27,10 +27,21 @@
     <filter-mapping>
         <filter-name>LoginCheck</filter-name>
         <url-pattern>/professor-home</url-pattern>
-        <url-pattern>/student-home</url-pattern>
-        <url-pattern>/Funcase</url-pattern>
         <url-pattern>/Appelli</url-pattern>
         <url-pattern>/IscrittiAppello</url-pattern>
+        <url-pattern>/ModificaVoto</url-pattern>
+        <url-pattern>/PubblicaVoti</url-pattern>
+        <url-pattern>/Verbali</url-pattern>
+        <url-pattern>/VerbalizzaIscritti</url-pattern>
+        <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+
+        <url-pattern>/student-home</url-pattern>
+        <url-pattern>/AppelliStudente</url-pattern>
+        <url-pattern>/GestioneVotiStudente</url-pattern>
+        <url-pattern>/RifiutaVoto</url-pattern>
+
+        <url-pattern>/Funcase</url-pattern>
+
 
 
     </filter-mapping>
