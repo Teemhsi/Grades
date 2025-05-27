@@ -72,7 +72,7 @@ public class DettaglioVerbaleServlet extends HttpServlet {
 
         // Validazione parametro 'codice'
         String codiceVerbale = req.getParameter("codice");
-        if (codiceVerbale == null || (codiceVerbale = codiceVerbale.trim()).isEmpty()) {
+        if (codiceVerbale == null || codiceVerbale.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Codice verbale mancante o non valido");
             return;
         }

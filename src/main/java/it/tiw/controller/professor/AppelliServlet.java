@@ -61,7 +61,7 @@ public class AppelliServlet extends HttpServlet {
         int idCorso;
         try {
             String idParam = req.getParameter("id");
-            if (idParam == null) {
+            if (idParam == null || idParam.trim().isEmpty()) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro id mancante");
                 return;
             }

@@ -76,7 +76,9 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
         }
 
         // Verifica parametri obbligatori
-        if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null) {
+        if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null ||
+                idStudenteStr.trim().isEmpty() || idAppelloStr.trim().isEmpty() ||
+                idCorsoStr.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");
             return;
         }
@@ -86,6 +88,10 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
             idStudente = Integer.parseInt(idStudenteStr);
             idAppello = Integer.parseInt(idAppelloStr);
             idCorso = Integer.parseInt(idCorsoStr);
+            if(idStudente < 1 || idAppello < 1 || idCorso < 1){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+                return;
+            }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri non validi");
             return;

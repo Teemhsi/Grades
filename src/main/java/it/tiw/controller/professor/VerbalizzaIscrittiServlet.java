@@ -48,7 +48,7 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
-        if (idAppelloStr == null || idCorsoStr == null) {
+        if (idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'idAppello' o 'idCorso' mancante");
             return;
         }
@@ -57,6 +57,10 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
         try {
             idAppello = Integer.parseInt(idAppelloStr);
             idCorso = Integer.parseInt(idCorsoStr);
+            if (idAppello <= 0 || idCorso <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri 'idAppello' e 'idCorso' devono essere positivi");
+                return;
+            }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'idAppello' o 'idCorso' non valido");
             return;

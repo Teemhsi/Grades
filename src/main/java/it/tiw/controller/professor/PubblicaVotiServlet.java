@@ -59,6 +59,10 @@ public class PubblicaVotiServlet extends HttpServlet {
         try {
             idAppello = Integer.parseInt(idAppelloStr);
             idCorso = Integer.parseInt(idCorsoStr);
+            if (idAppello <= 0 || idCorso <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri 'idAppello' e 'idCorso' devono essere positivi");
+                return;
+            }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
             return;

@@ -84,6 +84,10 @@ public class ModificaVotoServlet extends HttpServlet {
             idStudente = Integer.parseInt(idStudenteStr.trim());
             idAppello = Integer.parseInt(idAppelloStr.trim());
             idCorso = Integer.parseInt(idCorsoStr.trim());
+            if(idStudente < 1 || idAppello < 1 || idCorso < 1){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+                return;
+            }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
             return;

@@ -1,0 +1,51 @@
+# === Java ===
+*.class
+*.jar
+*.war
+*.ear
+
+# === Build ===
+/target/
+/build/
+
+# === IDEs ===
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === Temporary ===
+*.tmp
+*.swp
+*.bak
+*.~*
+
+# === Maven ===
+/dependency-reduced-pom.xml
+/mvnw
+/mvnw.cmd
+/.mvn/
