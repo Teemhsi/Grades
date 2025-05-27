@@ -38,7 +38,8 @@ public class RifiutaVotoServlet extends HttpServlet {
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
-        if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null) {
+        if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()
+            || idStudenteStr.trim().isEmpty())  {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");
             return;
         }
@@ -47,6 +48,11 @@ public class RifiutaVotoServlet extends HttpServlet {
             int idStudente = Integer.parseInt(idStudenteStr);
             int idAppello = Integer.parseInt(idAppelloStr);
             int idCorso = Integer.parseInt(idCorsoStr);
+
+            if(idAppello < 1 || idCorso < 1 || idStudente < 1){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+                return;
+            }
 
             // Ulteriore controllo: l'idStudente passato deve corrispondere all'utente loggato
             if (idStudente != student.getIdUtente()) {

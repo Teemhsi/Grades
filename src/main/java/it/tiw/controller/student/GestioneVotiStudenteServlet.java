@@ -62,7 +62,7 @@ public class GestioneVotiStudenteServlet extends HttpServlet {
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
-        if (idAppelloStr == null || idCorsoStr == null) {
+        if (idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri obbligatori mancanti");
             return;
         }
@@ -71,6 +71,11 @@ public class GestioneVotiStudenteServlet extends HttpServlet {
             int idAppello = Integer.parseInt(idAppelloStr);
             int idCorso = Integer.parseInt(idCorsoStr);
             int idStudente = utente.getIdUtente();
+
+            if(idAppello < 1 || idCorso < 1){
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+                return;
+            }
 
             IscrizioneDAO iscrizioneDAO = new IscrizioneDAO(connection);
             List<Object[]> risultati = iscrizioneDAO.findIscrizioneByIdCorsoIdAppelloStudentId(idStudente, idAppello, idCorso);

@@ -69,11 +69,15 @@ public class AppelliPerStudenteServlet extends HttpServlet {
         String idCorsoParam = req.getParameter("id");
         int idCorso;
         try {
-            if (idCorsoParam == null) {
+            if (idCorsoParam == null || idCorsoParam.trim().isEmpty()) {
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'id' mancante");
                 return;
             }
             idCorso = Integer.parseInt(idCorsoParam);
+            if (idCorso <= 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro id non valido");
+                return;
+            }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'id' non valido");
             return;
