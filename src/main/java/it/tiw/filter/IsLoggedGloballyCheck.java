@@ -21,12 +21,13 @@ public class IsLoggedGloballyCheck implements Filter{
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        String loginPath = req.getServletContext().getContextPath() + "/login.html";
+        String loginPath = req.getServletContext().getContextPath() + "/";
         HttpSession session = req.getSession();
         if (session.isNew() || session.getAttribute("user") == null) {
-            System.out.println("not logged already");
-            res.sendRedirect(loginPath);
-            System.out.println("redirect needed to login.html with path: " + loginPath);
+            res.setStatus(302);
+            res.setHeader("Location", loginPath);
+            System.out.print("Login checker FAILED...\n");
+            System.out.print("path: " + loginPath + "\n");
             return;
         }
         System.out.println("logged already");

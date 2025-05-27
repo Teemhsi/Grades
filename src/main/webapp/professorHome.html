@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Professor's Home Page</title>
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+<header>
+    <h1>Welcome to the Professor's Home Page</h1>
+    <div class="user-info">
+        <span id="user-email">Email: ...</span><br>
+        <span id="user-role">Role: ...</span>
+    </div>
+</header>
+
+<nav>
+    <div class="nav-left">
+        <a href="Verbali">Elenco Verbali</a>
+    </div>
+    <div class="nav-right">
+        <a href="LogoutHandler">Logout</a>
+    </div>
+</nav>
+
+<div id="courses-container" class="container" style="display:none;"></div>
+
+<div id="no-courses-container" class="container" style="display:none;">
+    <p>If you cannot see any courses, please contact the head office.</p>
+</div>
+
+<script type="module" src="javascript/professorHome.js"></script>
+</body>
+</html>
