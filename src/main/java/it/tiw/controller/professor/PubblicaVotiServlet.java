@@ -78,12 +78,16 @@ public class PubblicaVotiServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Nessun voto pubblicato o errore nel DB");
                 return;
             }
+            iscrizioneDAO.sendEmailOnPublish(idAppello);
+
 
             // Redirect alla pagina degli iscritti all'appello con idAppello e idCorso
             resp.sendRedirect(req.getContextPath() + "/IscrittiAppello?idAppello=" + idAppello + "&idCorso=" + idCorso);
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore DB: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
     }
 

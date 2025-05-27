@@ -24,7 +24,7 @@ public class Util {
     public static void sendEmail(String recepient) {
         final String fromEmail = "ish993956@gmail.com";
         final String toEmail = recepient;
-        final String appPassword = "";
+        final String appPassword = "nubn fwsm vqco pwcy";
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -42,9 +42,9 @@ public class Util {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(fromEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("New Updates");
+            message.setSubject("New Grades has been Published");
             message.setContent(
-                    "Hello from Uni test, new grades has been published.!<br>" +
+                    "Dear Student, new grades has been published.!<br>" +
                             "<a href='http://localhost:8080/tiw/'>Click here to open the portal</a>",
                     "text/html"
             );

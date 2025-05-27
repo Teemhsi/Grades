@@ -89,7 +89,9 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/DettaglioVerbale?codice=" + idVerbale);
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore database: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
     }
 

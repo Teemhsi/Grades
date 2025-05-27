@@ -110,7 +110,7 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
             templateEngine.process("formModificaVoto", ctx, resp.getWriter());
 
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore server: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
     }
 

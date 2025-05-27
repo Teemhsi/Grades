@@ -38,11 +38,28 @@ public class IscrizioneDAO {
     public boolean pubblicaVotiInseriti(int idAppello) throws SQLException {
         String query = "UPDATE grades.Iscrizioni SET stato_valutazione = 'Pubblicato' " +
                 "WHERE id_appello = ? AND stato_valutazione = 'Inserito'";
-        try (PreparedStatement ps = connection.prepareStatement(query)) {
-            ps.setInt(1, idAppello);
-            return ps.executeUpdate() >= 1;  // ritorna il numero di righe aggiornate
+
+        boolean success = false;
+        try {
+            connection.setAutoCommit(false); // Start transaction
+
+            try (PreparedStatement ps = connection.prepareStatement(query)) {
+                ps.setInt(1, idAppello);
+                int updatedRows = ps.executeUpdate();
+                success = updatedRows >= 1;
+
+                connection.commit(); // Commit transaction
+            } catch (SQLException e) {
+                connection.rollback(); // Rollback on error
+                throw e;
+            }
+        } finally {
+            connection.setAutoCommit(true); // Always reset autocommit
         }
+
+        return success;
     }
+
     public boolean rifiutaVotipubblicati(int idAppello, int idStudente) throws SQLException {
         String query = "UPDATE grades.Iscrizioni SET stato_valutazione = 'Rifiutato' " +
                 "WHERE id_appello = ? AND id_studente = ? AND stato_valutazione = 'Pubblicato'";

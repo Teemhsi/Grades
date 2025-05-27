@@ -1,6 +1,8 @@
 package it.tiw.controller.professor;
 
+import it.tiw.beans.Appello;
 import it.tiw.beans.Utente;
+import it.tiw.beans.Verbale;
 import it.tiw.dao.VerbaleDAO;
 import it.tiw.util.DbConnectionHandler;
 import jakarta.servlet.ServletException;
@@ -17,7 +19,9 @@ import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -78,13 +82,16 @@ public class VerbaliServlet extends HttpServlet {
             List<VerbaleEntry> verbali = new ArrayList<>();
 
             for (Object[] row : rawResults) {
-                it.tiw.beans.Verbale verbale = (it.tiw.beans.Verbale) row[0];
+                Verbale verbale = (Verbale) row[0];
                 String codiceVerbale = verbale.getCodiceVerbale();
-                java.sql.Timestamp dataCreazione = verbale.getDataCreazione();
+                Timestamp dataCreazione = verbale.getDataCreazione();
+
+                Date dataAppello = (Date) row[1];
+
 
                 if (!uniqueCodes.contains(codiceVerbale)) {
                     uniqueCodes.add(codiceVerbale);
-                    verbali.add(new VerbaleEntry(codiceVerbale, dataCreazione));
+                    verbali.add(new VerbaleEntry(codiceVerbale, dataCreazione, (String) row[2], dataAppello));
                 }
             }
 
@@ -95,7 +102,9 @@ public class VerbaliServlet extends HttpServlet {
             templateEngine.process("verbali", ctx, resp.getWriter());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore DB: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
         }
     }
 
@@ -113,19 +122,31 @@ public class VerbaliServlet extends HttpServlet {
      */
     public static class VerbaleEntry {
         private final String codiceVerbale;
-        private final java.sql.Timestamp dataCreazione;
+        private final Timestamp dataCreazione;
+        private String nomeCorso;
+        private Date dataAppello;
 
-        public VerbaleEntry(String codiceVerbale, java.sql.Timestamp dataCreazione) {
+        public VerbaleEntry(String codiceVerbale, Timestamp dataCreazione, String nomeCorso, Date dataAppello) {
             this.codiceVerbale = codiceVerbale;
             this.dataCreazione = dataCreazione;
+            this.nomeCorso = nomeCorso;
+            this.dataAppello = dataAppello;
         }
 
         public String getCodiceVerbale() {
             return codiceVerbale;
         }
 
-        public java.sql.Timestamp getDataCreazione() {
+        public Timestamp getDataCreazione() {
             return dataCreazione;
+        }
+
+        public String getNomeCorso() {
+            return nomeCorso;
+        }
+
+        public Date getDataAppello() {
+            return dataAppello;
         }
     }
 }

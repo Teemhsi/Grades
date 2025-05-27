@@ -91,14 +91,18 @@
         <thead>
         <tr>
             <th>Codice Verbale</th>
-            <th>Data Creazione</th>
-            <th>Azioni</th>
+            <th>Data Creazione Verbale</th>
+            <th>Corso</th>
+            <th>Data Appello</th>
+            <th>Azione</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="entry : ${verbali}">
             <td th:text="${entry.codiceVerbale}">VER-123-456789</td>
             <td th:text="${#dates.format(entry.dataCreazione, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 10:30:00</td>
+            <td th:text="${entry.nomeCorso}"></td>
+            <td th:text="${entry.dataAppello}"></td>
             <td>
                 <a th:href="@{/DettaglioVerbale(codice=${entry.codiceVerbale})}"
                    class="verbale-link">
