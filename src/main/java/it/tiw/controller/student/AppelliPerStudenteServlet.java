@@ -58,6 +58,12 @@ public class AppelliPerStudenteServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
+        // Recupera utente dalla sessione e verifica ruolo
+        Utente student = (Utente) req.getSession().getAttribute("user");
+        if (student == null || !"studente".equalsIgnoreCase(student.getRuolo())) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
 
         // Recupera e valida il parametro idCorso
         String idCorsoParam = req.getParameter("id");
@@ -70,13 +76,6 @@ public class AppelliPerStudenteServlet extends HttpServlet {
             idCorso = Integer.parseInt(idCorsoParam);
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'id' non valido");
-            return;
-        }
-
-        // Recupera utente dalla sessione e verifica ruolo
-        Utente student = (Utente) req.getSession().getAttribute("user");
-        if (student == null || !"studente".equalsIgnoreCase(student.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
 

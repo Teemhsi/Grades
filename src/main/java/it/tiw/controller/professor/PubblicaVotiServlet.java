@@ -41,14 +41,16 @@ public class PubblicaVotiServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String idAppelloStr = req.getParameter("idAppello");
-        String idCorsoStr = req.getParameter("idCorso");
+        resp.setContentType("text/html;charset=UTF-8");
 
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
             resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
+        String idAppelloStr = req.getParameter("idAppello");
+        String idCorsoStr = req.getParameter("idCorso");
+
 
         if (idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");

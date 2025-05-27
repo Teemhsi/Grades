@@ -45,6 +45,13 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html;charset=UTF-8");
+
+        Utente docente = (Utente) req.getSession().getAttribute("user");
+        if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
@@ -63,12 +70,6 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
             }
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'idAppello' o 'idCorso' non valido");
-            return;
-        }
-
-        Utente docente = (Utente) req.getSession().getAttribute("user");
-        if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
             return;
         }
 

@@ -161,7 +161,7 @@ public class StudenteDAO {
                         return 3 + (val - 17); // 18 → 4, ..., 30 → 16
                     }
                 } catch (NumberFormatException e) {
-                    // Non è un voto valido numerico
+                    e.printStackTrace();
                 }
                 return Integer.MAX_VALUE; // Valore sconosciuto o non gestito
         }

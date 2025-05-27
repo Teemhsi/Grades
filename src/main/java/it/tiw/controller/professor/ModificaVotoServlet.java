@@ -60,17 +60,18 @@ public class ModificaVotoServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
+        Utente docente = (Utente) req.getSession().getAttribute("user");
+        if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
+        }
         // Lettura e validazione parametri
         String idStudenteStr = req.getParameter("idStudente");
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
         String votoStr = req.getParameter("voto");
 
-        Utente docente = (Utente) req.getSession().getAttribute("user");
-        if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
-            return;
-        }
+
 
         if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null || votoStr == null ||
                 idStudenteStr.trim().isEmpty() || idAppelloStr.trim().isEmpty() ||
