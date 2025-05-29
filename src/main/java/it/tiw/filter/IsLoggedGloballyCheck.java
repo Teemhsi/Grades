@@ -21,11 +21,13 @@ public class IsLoggedGloballyCheck implements Filter{
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
-        String loginPath = req.getServletContext().getContextPath() + "/";
+        String loginPath = req.getServletContext().getContextPath() + "/login.html";
         HttpSession session = req.getSession();
         if (session.isNew() || session.getAttribute("user") == null) {
-            res.setStatus(302);
-            res.setHeader("Location", loginPath);
+            res.setStatus(403);
+            //res.setHeader("Location", loginPath);
+            //res.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso negato");
+
             System.out.print("Login checker FAILED...\n");
             System.out.print("path: " + loginPath + "\n");
             return;

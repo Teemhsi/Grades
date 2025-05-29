@@ -5,10 +5,73 @@
     <title>Professor's Home Page</title>
     <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        /* Additional styles for verbali table */
+        .verbali-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .verbali-table th, .verbali-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .verbali-table th {
+            background-color: #f4f4f4;
+        }
+
+        .verbale-link {
+            color: #1ABC9C;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .verbale-link:hover {
+            color: #16A085;
+            text-decoration: underline;
+        }
+
+        .select-button {
+            background-color: #1ABC9C;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .select-button:hover {
+            background-color: #16A085;
+        }
+
+
+        .back-button {
+            background-color: #1ABC9C;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #16A085;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
+
 <header>
-    <h1>Welcome to the Professor's Home Page</h1>
+    <h1 id="main-title">Welcome to the Professor's Home Page</h1>
     <div class="user-info">
         <span id="user-email">Email: ...</span><br>
         <span id="user-role">Role: ...</span>
@@ -17,19 +80,49 @@
 
 <nav>
     <div class="nav-left">
-        <a href="Verbali">Elenco Verbali</a>
+        <a href="#" id="verbali-link">Elenco Verbali</a>
+        <a href="#" id="back-to-home-nav" class="hidden">← Go Back</a>
     </div>
     <div class="nav-right">
         <a href="LogoutHandler">Logout</a>
     </div>
 </nav>
 
-<div id="courses-container" class="container" style="display:none;"></div>
-
-<div id="no-courses-container" class="container" style="display:none;">
-    <p>If you cannot see any courses, please contact the head office.</p>
+<!-- Main Home View -->
+<div id="home-view">
+    <div id="courses-container" class="container" style="display:none;"></div>
+    <div id="no-courses-container" class="container" style="display:none;">
+        <p>If you cannot see any courses, please contact the head office.</p>
+    </div>
 </div>
 
+<!-- Verbali View -->
+<div id="verbali-view" class="container hidden">
+    <h3>Elenco verbali verbalizzati</h3>
+    <h3 id="verbali-count">Total Verbals created: 0</h3>
+
+    <div id="verbali-content">
+        <!-- Verbali table will be inserted here -->
+    </div>
+</div>
+
+<!-- ADD THIS APPELLI VIEW SECTION HERE -->
+<div id="appelli-view" class="container hidden">
+    <div class="course-info">
+        <p id="appelli-course-info">(DEBUG): Select a call for course ID <span id="corso-id-display">ID Corso</span>.</p>
+        <p id="appelli-count">Total Calls Found: <span id="appelli-total">0</span></p>
+    </div>
+
+    <div id="appelli-content" class="appello-list">
+        <!-- Appelli list will be inserted here -->
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Professor Portal. All Rights Reserved.</p>
+</footer>
+
 <script type="module" src="javascript/professorHome.js"></script>
+
 </body>
 </html>

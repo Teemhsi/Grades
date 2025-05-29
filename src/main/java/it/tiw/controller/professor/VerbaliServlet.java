@@ -1,6 +1,5 @@
 package it.tiw.controller.professor;
 
-import it.tiw.beans.Appello;
 import it.tiw.beans.Utente;
 import it.tiw.beans.Verbale;
 import it.tiw.dao.VerbaleDAO;
@@ -10,12 +9,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,36 +23,20 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Servlet per visualizzare i verbali associati al docente autenticato.
- * Recupera i verbali unici (basati sul codice verbale) e li passa alla view Thymeleaf.
+ * Servlet che restituisce i verbali del docente in formato JSON per chiamate AJAX.
  */
 @WebServlet("/Verbali")
 public class VerbaliServlet extends HttpServlet {
 
-    private TemplateEngine templateEngine;
-    private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
 
     @Override
     public void init() throws ServletException {
-        thymeleafApp = JakartaServletWebApplication.buildApplication(getServletContext());
-
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(thymeleafApp);
-        templateResolver.setPrefix("/WEB-INF/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
     /**
-     * Gestisce la richiesta GET per mostrare la lista dei verbali del docente.
-     * Verifica l'autenticazione e autorizzazione del docente.
+     * Gestisce la richiesta GET per restituire i verbali del docente in formato JSON.
      *
      * @param req  richiesta HTTP
      * @param resp risposta HTTP
@@ -66,11 +45,11 @@ public class VerbaliServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html;charset=UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
 
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access denied");
             return;
         }
 
@@ -85,21 +64,22 @@ public class VerbaliServlet extends HttpServlet {
                 Verbale verbale = (Verbale) row[0];
                 String codiceVerbale = verbale.getCodiceVerbale();
                 Timestamp dataCreazione = verbale.getDataCreazione();
-
                 Date dataAppello = (Date) row[1];
-
+                String nomeCorso = (String) row[2];
 
                 if (!uniqueCodes.contains(codiceVerbale)) {
                     uniqueCodes.add(codiceVerbale);
-                    verbali.add(new VerbaleEntry(codiceVerbale, dataCreazione, (String) row[2], dataAppello));
+                    verbali.add(new VerbaleEntry(codiceVerbale, dataCreazione, nomeCorso, dataAppello));
                 }
             }
 
-            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
-            WebContext ctx = new WebContext(webExchange, req.getLocale());
-            ctx.setVariable("verbali", verbali);
+            // Configura Gson per gestire correttamente date e timestamp
+            Gson gson = new GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                    .create();
 
-            templateEngine.process("verbali", ctx, resp.getWriter());
+            String jsonResponse = gson.toJson(verbali);
+            resp.getWriter().write(jsonResponse);
 
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
@@ -118,13 +98,13 @@ public class VerbaliServlet extends HttpServlet {
     }
 
     /**
-     * Classe interna per rappresentare un singolo verbale semplificato per la view.
+     * Classe per rappresentare un verbale in formato JSON.
      */
     public static class VerbaleEntry {
         private final String codiceVerbale;
         private final Timestamp dataCreazione;
-        private String nomeCorso;
-        private Date dataAppello;
+        private final String nomeCorso;
+        private final Date dataAppello;
 
         public VerbaleEntry(String codiceVerbale, Timestamp dataCreazione, String nomeCorso, Date dataAppello) {
             this.codiceVerbale = codiceVerbale;

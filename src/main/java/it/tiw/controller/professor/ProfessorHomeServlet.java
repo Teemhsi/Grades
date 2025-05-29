@@ -25,7 +25,7 @@ import java.util.List;
  * Servlet che gestisce la home page del docente, mostrando i corsi assegnati.
  * <p>
  * Controlla che l'utente sia autenticato e abbia ruolo "docente".
- * Recupera i corsi associati al docente e li passa al template Thymeleaf.
+ * Recupera i corsi associati al docente.
  */
 @WebServlet("/professor-home")
 public class ProfessorHomeServlet extends HttpServlet {
