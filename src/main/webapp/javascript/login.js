@@ -11,7 +11,6 @@ function clearError() {
 }
 
 function isValidEmail(email) {
-    // Simple email validation regex
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(email);
 }
@@ -19,7 +18,6 @@ function isValidEmail(email) {
 function validateForm(email, password) {
     clearError();
 
-    // Check for null/empty values
     if (!email || email.trim() === "") {
         showError("Please enter your email address.");
         return false;
@@ -30,7 +28,6 @@ function validateForm(email, password) {
         return false;
     }
 
-    // Check email format
     if (!isValidEmail(email.trim())) {
         showError("Please enter a valid email address.");
         return false;
@@ -44,13 +41,11 @@ function getDataForLogin() {
         e.preventDefault();
         const form = e.target;
 
-        // Get form values
         const email = form.querySelector('input[name="email"]').value;
         const password = form.querySelector('input[name="password"]').value;
 
         console.log("Form values - Email:", email, "Password:", password ? "[HIDDEN]" : "empty");
 
-        // Validate form
         if (!validateForm(email, password)) {
             return;
         }
@@ -63,6 +58,8 @@ function getDataForLogin() {
                 if (req.status === 200) {
                     try {
                         const res = JSON.parse(req.responseText);
+                        sessionStorage.setItem("user", JSON.stringify(res));
+
                         if (res.ruolo === "docente") {
                             window.location.href = "professorHome.html";
                         } else if (res.ruolo === "studente") {
@@ -70,7 +67,6 @@ function getDataForLogin() {
                         } else {
                             showError("Ruolo non riconosciuto.");
                         }
-                        sessionStorage.setItem("user", JSON.stringify(res));
                     } catch (err) {
                         console.error("JSON parse error:", err);
                         showError("Errore nella risposta del server.");
@@ -88,7 +84,35 @@ function getDataForLogin() {
     });
 }
 
-// Call the function after DOM is loaded
+function redirectIfLoggedIn() {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+        try {
+            const user = JSON.parse(userData);
+            if (user.ruolo === "docente") {
+                window.location.href = "professorHome.html";
+                return true;
+            } else if (user.ruolo === "studente") {
+                window.location.href = "studentHome.html";
+                return true;
+            }
+        } catch {
+           return false;
+        }
+    }
+    return false;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-    getDataForLogin();
+    if (!redirectIfLoggedIn()) {
+        getDataForLogin();
+    }
+});
+
+// Handle back/forward navigation from bfcache (pageshow event)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        // Page loaded from back/forward cache, reload to re-run login check
+        window.location.reload();
+    }
 });

@@ -73,6 +73,7 @@
         <url-pattern>/AppelliStudente</url-pattern>
         <url-pattern>/GestioneVotiStudente</url-pattern>
         <url-pattern>/RifiutaVoto</url-pattern>
+        <url-pattern>/professorHome.html</url-pattern>
 
         <url-pattern>/Funcase</url-pattern>
     </filter-mapping>

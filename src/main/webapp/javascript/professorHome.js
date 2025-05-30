@@ -8,6 +8,7 @@ const verbaliView = document.getElementById("verbali-view");
 const appelliView = document.getElementById("appelli-view");
 const iscrittiView = document.getElementById("iscritti-view");
 const modificaVotoView = document.getElementById("modifica-voto-view");
+const dettaglioVerbaleView = document.getElementById("dettaglio-verbale-view");
 
 const verbaliLink = document.getElementById("verbali-link");
 const backToHomeNav = document.getElementById("back-to-home-nav");
@@ -22,12 +23,28 @@ let currentSortDir = "asc";
 // Variabile globale per memorizzare i dati degli iscritti
 let iscrittiData = [];
 
+function showDettaglioVerbaleView() {
+    homeView.classList.add("hidden");
+    verbaliView.classList.add("hidden");
+    appelliView.classList.add("hidden");
+    iscrittiView.classList.add("hidden");
+    modificaVotoView.classList.add("hidden");
+    dettaglioVerbaleView.classList.remove("hidden");
+    verbaliLink.classList.add("hidden");
+    backToHomeNav.classList.remove("hidden");
+    mainTitle.textContent = "Dettaglio Verbale";
+
+    // Nascondi i bottoni azioni dalla nav
+    hideActionButtons();
+}
+
 function showModificaVotoView() {
     homeView.classList.add("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
     iscrittiView.classList.add("hidden");
     modificaVotoView.classList.remove("hidden");
+    dettaglioVerbaleView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Modifica Voto Studente";
@@ -42,6 +59,7 @@ function showHomeView() {
     appelliView.classList.add("hidden");
     iscrittiView.classList.add("hidden");
     modificaVotoView.classList.add("hidden");
+    dettaglioVerbaleView.classList.add("hidden");
     verbaliLink.classList.remove("hidden");
     backToHomeNav.classList.add("hidden");
     mainTitle.textContent = "Welcome to the Professor's Home Page";
@@ -56,6 +74,7 @@ function showVerbaliView() {
     appelliView.classList.add("hidden");
     iscrittiView.classList.add("hidden");
     modificaVotoView.classList.add("hidden");
+    dettaglioVerbaleView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Verbali degli Studenti";
@@ -70,6 +89,7 @@ function showAppelliView() {
     appelliView.classList.remove("hidden");
     iscrittiView.classList.add("hidden");
     modificaVotoView.classList.add("hidden");
+    dettaglioVerbaleView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Seleziona un Appello";
@@ -84,6 +104,7 @@ function showIscrittiView() {
     appelliView.classList.add("hidden");
     iscrittiView.classList.remove("hidden");
     modificaVotoView.classList.add("hidden");
+    dettaglioVerbaleView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Studenti Iscritti all'Appello";
@@ -652,8 +673,7 @@ function loadVerbali() {
                                         <td>${entry.nomeCorso}</td>
                                         <td>${formatDate(entry.dataAppello)}</td>
                                         <td>
-                                            <a href="DettaglioVerbale?codice=${entry.codiceVerbale}" 
-                                               class="verbale-link">
+                                            <a href="#" class="verbale-link" data-codice="${entry.codiceVerbale}">
                                                 Visualizza Dettagli
                                             </a>
                                         </td>
@@ -662,11 +682,92 @@ function loadVerbali() {
                             </tbody>
                         </table>
                     `;
+
+                    // Aggiungi event listeners per i link dei verbali
+                    addVerbaliEventListeners();
                 } else {
                     verbaliContent.innerHTML = "<p>Nessun verbale disponibile.</p>";
                 }
             } else {
                 verbaliContent.innerHTML = "<p>Errore nel caricamento dei verbali.</p>";
+            }
+        }
+    });
+}
+
+function addVerbaliEventListeners() {
+    document.querySelectorAll('a.verbale-link[data-codice]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const codiceVerbale = this.getAttribute('data-codice');
+            loadDettaglioVerbale(codiceVerbale);
+        });
+    });
+}
+
+function loadDettaglioVerbale(codiceVerbale) {
+    makeCall("GET", `DettaglioVerbale?codice=${codiceVerbale}`, null, function(req) {
+        if (req.readyState === XMLHttpRequest.DONE) {
+            if (req.status === 200) {
+                try {
+                    const data = JSON.parse(req.responseText);
+
+                    // Popola le informazioni del verbale
+                    const verbaleInfo = document.getElementById('verbale-info');
+                    verbaleInfo.innerHTML = `
+                        <h4>Codice Verbale: ${data.verbaleInfo.codiceVerbale}</h4>
+                        <p>Data Creazione: ${data.verbaleInfo.dataCreazione}</p>
+                        <p>Data Appello: ${data.verbaleInfo.dataAppello}</p>
+                        <p>Corso: ${data.verbaleInfo.nomeCorso}</p>
+                    `;
+
+                    // Aggiorna il totale studenti
+                    document.getElementById('totale-studenti-verbale').textContent = `Totale studenti: ${data.totaleStudenti}`;
+
+                    // Popola la tabella studenti
+                    const dettaglioContent = document.getElementById('dettaglio-verbale-content');
+                    if (data.studenti.length > 0) {
+                        dettaglioContent.innerHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Matricola</th>
+                                        <th>Nome</th>
+                                        <th>Cognome</th>
+                                        <th>Voto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.studenti.map(studente => `
+                                        <tr>
+                                            <td>${studente.matricola}</td>
+                                            <td>${studente.nome}</td>
+                                            <td>${studente.cognome}</td>
+                                            <td class="${(studente.voto === 'Rimandato' || studente.voto === 'Riprovato') ? 'red-text' : ''}">
+                                                ${studente.voto}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    } else {
+                        dettaglioContent.innerHTML = "<p>Nessun studente trovato in questo verbale.</p>";
+                    }
+
+                    // Mostra la view dettaglio verbale
+                    showDettaglioVerbaleView();
+                } catch (error) {
+                    console.error('Errore parsing JSON:', error);
+                    alert('Errore nel caricamento del dettaglio verbale');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(req.responseText);
+                    alert(errorData.error || 'Errore nel caricamento del dettaglio verbale');
+                } catch (e) {
+                    alert('Errore nel caricamento del dettaglio verbale');
+                }
             }
         }
     });
@@ -710,8 +811,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("back-to-home-nav").addEventListener("click", function(e) {
         e.preventDefault();
 
+        // Se siamo nella view dettaglio verbale, torna ai verbali
+        if (!dettaglioVerbaleView.classList.contains("hidden")) {
+            showVerbaliView();
+            loadVerbali();
+        }
         // Se siamo nella view modifica voto, torna agli iscritti
-        if (!modificaVotoView.classList.contains("hidden")) {
+        else if (!modificaVotoView.classList.contains("hidden")) {
             backToIscritti();
         }
         // Se siamo nella view iscritti, torna agli appelli

@@ -10,70 +10,53 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Servlet per mostrare i dettagli di un verbale associato a un docente autenticato.
- * Risponde a richieste GET su /DettaglioVerbale.
+ * Servlet per mostrare i dettagli di un verbale in formato JSON.
  */
 @WebServlet("/DettaglioVerbale")
 public class DettaglioVerbaleServlet extends HttpServlet {
-    private TemplateEngine templateEngine;
-    private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
+    private Gson gson = new Gson();
 
     @Override
     public void init() throws ServletException {
-        thymeleafApp = JakartaServletWebApplication.buildApplication(getServletContext());
-
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(thymeleafApp);
-        templateResolver.setPrefix("/WEB-INF/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
-    /**
-     * Gestisce richieste GET per mostrare i dettagli di un verbale specifico.
-     * Controlla autenticazione, validità del parametro e accesso al database.
-     *
-     * @param req  richiesta HTTP
-     * @param resp risposta HTTP
-     * @throws ServletException se si verifica un errore nella logica della servlet
-     * @throws IOException      se si verifica un errore di I/O
-     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html;charset=UTF-8");
+        JsonObject jsonResponse = new JsonObject();
 
         // Verifica autenticazione e ruolo
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Non autorizzato");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
 
         // Validazione parametro 'codice'
         String codiceVerbale = req.getParameter("codice");
         if (codiceVerbale == null || codiceVerbale.trim().isEmpty()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Codice verbale mancante o non valido");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Codice verbale mancante o non valido");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
 
@@ -95,21 +78,62 @@ public class DettaglioVerbaleServlet extends HttpServlet {
             }
 
             if (dettagliVerbale.isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Verbale non trovato");
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("error", "Verbale non trovato");
+                resp.getWriter().write(jsonResponse.toString());
                 return;
             }
 
-            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
-            WebContext ctx = new WebContext(webExchange, req.getLocale());
-            ctx.setVariable("dettagliVerbale", dettagliVerbale);
-            ctx.setVariable("codiceVerbale", codiceVerbale);
+            // Costruisci la risposta JSON
+            JsonObject verbaleInfo = new JsonObject();
+            VerbaleDetailEntry firstEntry = dettagliVerbale.get(0);
 
-            templateEngine.process("dettaglioVerbale", ctx, resp.getWriter());
+            verbaleInfo.addProperty("codiceVerbale", codiceVerbale);
+
+            // Formatta la data di creazione
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            verbaleInfo.addProperty("dataCreazione", dateFormat.format(firstEntry.getVerbale().getDataCreazione()));
+
+            // Formatta la data appello
+            SimpleDateFormat dateFormatSimple = new SimpleDateFormat("dd/MM/yyyy");
+            verbaleInfo.addProperty("dataAppello", dateFormatSimple.format(firstEntry.getDataAppello()));
+
+            verbaleInfo.addProperty("nomeCorso", firstEntry.getNomeCorso());
+
+            // Array di studenti
+            JsonArray studentiArray = new JsonArray();
+            for (VerbaleDetailEntry entry : dettagliVerbale) {
+                JsonObject studenteObj = new JsonObject();
+                studenteObj.addProperty("matricola", entry.getStudente().getMatricola());
+                studenteObj.addProperty("nome", entry.getStudente().getNome());
+                studenteObj.addProperty("cognome", entry.getStudente().getCognome());
+                studenteObj.addProperty("voto", entry.getStudente().getVoto());
+                studentiArray.add(studenteObj);
+            }
+
+            jsonResponse.add("verbaleInfo", verbaleInfo);
+            jsonResponse.add("studenti", studentiArray);
+            jsonResponse.addProperty("totaleStudenti", dettagliVerbale.size());
+
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write(jsonResponse.toString());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Database error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Server error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         }
     }
 
@@ -122,7 +146,7 @@ public class DettaglioVerbaleServlet extends HttpServlet {
         }
     }
 
-    // Inner class for verbale details
+    // Inner class rimane uguale
     public static class VerbaleDetailEntry {
         private final Verbale verbale;
         private final java.sql.Date dataAppello;
