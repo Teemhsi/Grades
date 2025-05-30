@@ -6,10 +6,12 @@ import it.tiw.dao.AppelloDAO;
 import it.tiw.beans.Utente;
 import it.tiw.util.DbConnectionHandler;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -17,18 +19,13 @@ import java.sql.SQLException;
 
 /**
  * Servlet che gestisce la verbalizzazione degli iscritti ad un appello.
- * Verifica i parametri, l'autenticazione e autorizzazione del docente,
- * crea il verbale e aggiorna le iscrizioni associate.
+ * Restituisce una risposta JSON invece di fare redirect.
  */
 @WebServlet("/VerbalizzaIscritti")
+@MultipartConfig
 public class VerbalizzaIscrittiServlet extends HttpServlet {
     private Connection connection;
 
-    /**
-     * Inizializza la connessione al database.
-     *
-     * @throws ServletException se si verifica un errore durante l'inizializzazione
-     */
     @Override
     public void init() throws ServletException {
         connection = DbConnectionHandler.getConnection(getServletContext());
@@ -36,27 +33,31 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
 
     /**
      * Gestisce la richiesta POST per verbalizzare gli iscritti.
-     * Controlla parametri, ruolo docente e autorizzazioni, poi crea il verbale.
-     *
-     * @param req  richiesta HTTP
-     * @param resp risposta HTTP
-     * @throws ServletException in caso di errore servlet
-     * @throws IOException      in caso di errore I/O
+     * Restituisce JSON con successo o errore.
      */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html;charset=UTF-8");
+        JsonObject jsonResponse = new JsonObject();
 
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Non autorizzato");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
+
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
 
         if (idAppelloStr == null || idCorsoStr == null || idAppelloStr.trim().isEmpty() || idCorsoStr.trim().isEmpty()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'idAppello' o 'idCorso' mancante");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Parametro 'idAppello' o 'idCorso' mancante");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
 
@@ -65,11 +66,19 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
             idAppello = Integer.parseInt(idAppelloStr);
             idCorso = Integer.parseInt(idCorsoStr);
             if (idAppello <= 0 || idCorso <= 0) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri 'idAppello' e 'idCorso' devono essere positivi");
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("error", "Parametri 'idAppello' e 'idCorso' devono essere positivi");
+                resp.getWriter().write(jsonResponse.toString());
                 return;
             }
         } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametro 'idAppello' o 'idCorso' non valido");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Parametro 'idAppello' o 'idCorso' non valido");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
 
@@ -77,7 +86,11 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
             AppelloDAO appelloDAO = new AppelloDAO(connection);
             // Verifica che l'appello appartenga al docente
             if (appelloDAO.findAppelloDateByCourseCallDocente(idCorso, docente.getIdUtente(), idAppello) == null) {
-                resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso negato all'appello");
+                resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("error", "Accesso negato all'appello");
+                resp.getWriter().write(jsonResponse.toString());
                 return;
             }
 
@@ -86,23 +99,40 @@ public class VerbalizzaIscrittiServlet extends HttpServlet {
             String idVerbale = verbaleDAO.creaVerbaleConIscrizioni(idAppello);
 
             if (idVerbale == null || idVerbale.isEmpty()) {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore durante la verbalizzazione");
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("error", "Errore durante la verbalizzazione");
+                resp.getWriter().write(jsonResponse.toString());
                 return;
             }
 
-            // Reindirizza alla pagina di dettaglio verbale
-            resp.sendRedirect(req.getContextPath() + "/DettaglioVerbale?codice=" + idVerbale);
+            // Successo
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("success", true);
+            jsonResponse.addProperty("message", "Verbalizzazione completata con successo");
+            jsonResponse.addProperty("idVerbale", idVerbale);
+            jsonResponse.addProperty("idAppello", idAppello);
+            jsonResponse.addProperty("idCorso", idCorso);
+            resp.getWriter().write(jsonResponse.toString());
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Database error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Server error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         }
     }
 
-    /**
-     * Chiude la connessione al database all'atto della distruzione della servlet.
-     */
     @Override
     public void destroy() {
         try {

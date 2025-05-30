@@ -573,26 +573,8 @@ function addActionButtonEventListeners() {
                 // Gestione AJAX per pubblica
                 handlePubblicaVoti(appelloId, corsoId);
             } else if (action === 'verbalizza') {
-                // Per ora manteniamo il comportamento originale per verbalizza
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = 'VerbalizzaIscritti';
-
-                const inputAppello = document.createElement('input');
-                inputAppello.type = 'hidden';
-                inputAppello.name = 'idAppello';
-                inputAppello.value = appelloId;
-
-                const inputCorso = document.createElement('input');
-                inputCorso.type = 'hidden';
-                inputCorso.name = 'idCorso';
-                inputCorso.value = corsoId;
-
-                form.appendChild(inputAppello);
-                form.appendChild(inputCorso);
-
-                document.body.appendChild(form);
-                form.submit();
+                // Gestione AJAX per verbalizza
+                handleVerbalizzaIscritti(appelloId, corsoId);
             }
         });
     });
@@ -637,6 +619,57 @@ function handlePubblicaVoti(appelloId, corsoId) {
                     alert(errorData.error || 'Errore nella pubblicazione dei voti');
                 } catch (e) {
                     alert('Errore nella pubblicazione dei voti');
+                }
+            }
+        }
+    }, false);
+}
+
+function handleVerbalizzaIscritti(appelloId, corsoId) {
+    // Conferma prima di verbalizzare
+    if (!confirm('Sei sicuro di voler verbalizzare gli iscritti? Verrà creato un verbale con tutti i voti pubblicati.')) {
+        return;
+    }
+
+    // Crea un form temporaneo per makeCall
+    const tempForm = document.createElement('form');
+
+    const inputAppello = document.createElement('input');
+    inputAppello.type = 'hidden';
+    inputAppello.name = 'idAppello';
+    inputAppello.value = appelloId;
+    tempForm.appendChild(inputAppello);
+
+    const inputCorso = document.createElement('input');
+    inputCorso.type = 'hidden';
+    inputCorso.name = 'idCorso';
+    inputCorso.value = corsoId;
+    tempForm.appendChild(inputCorso);
+
+    makeCall("POST", "VerbalizzaIscritti", tempForm, function(req) {
+        if (req.readyState === XMLHttpRequest.DONE) {
+            if (req.status === 200) {
+                try {
+                    const data = JSON.parse(req.responseText);
+                    alert(data.message || 'Verbalizzazione completata con successo');
+
+                    // Mostra il dettaglio del verbale appena creato
+                    if (data.idVerbale) {
+                        loadDettaglioVerbale(data.idVerbale);
+                    } else {
+                        // Se non abbiamo l'id del verbale, ricarica la lista iscritti
+                        loadIscritti(appelloId, corsoId, currentSortField, currentSortDir);
+                    }
+                } catch (error) {
+                    console.error('Errore parsing JSON:', error);
+                    alert('Errore nella verbalizzazione');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(req.responseText);
+                    alert(errorData.error || 'Errore nella verbalizzazione');
+                } catch (e) {
+                    alert('Errore nella verbalizzazione');
                 }
             }
         }
