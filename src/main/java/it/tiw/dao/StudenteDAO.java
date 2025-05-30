@@ -86,16 +86,7 @@ public class StudenteDAO {
 
         return studenti;
     }
-    public List<Studente> getIscrittiOrdinati(int idAppello, int idCorso, int docenteId, String sortField, String sortDir) throws SQLException {
-        List<String> allowedFields = Arrays.asList("matricola", "cognome", "nome", "email", "corso_di_laurea", "voto", "stato_valutazione");
-
-        if (!allowedFields.contains(sortField)) {
-            sortField = "cognome";
-        }
-        if (!"asc".equalsIgnoreCase(sortDir) && !"desc".equalsIgnoreCase(sortDir)) {
-            sortDir = "asc";
-        }
-
+    public List<Studente> getIscrittiOrdinati(int idAppello, int idCorso, int docenteId) throws SQLException {
         String query =
                 "SELECT s.id_utente, s.matricola, s.cognome, s.nome, u.email, s.corso_di_laurea, i.voto, i.stato_valutazione " +
                         "FROM grades.Iscrizioni i " +
@@ -105,11 +96,6 @@ public class StudenteDAO {
                         "JOIN grades.Corsi c ON a.id_corso = c.id_corso " +
                         "JOIN grades.Docenti d ON c.id_docente = d.id_utente " +
                         "WHERE i.id_appello = ? AND c.id_corso = ? AND d.id_utente = ?";
-
-        // Nota: rimuoviamo l'ORDER BY dalla query se sortField è "voto"
-        if (!"voto".equalsIgnoreCase(sortField)) {
-            query += " ORDER BY " + sortField + " " + sortDir;
-        }
 
         List<Studente> studenti = new ArrayList<>();
 
@@ -132,39 +118,8 @@ public class StudenteDAO {
                     studenti.add(studente);
                 }
             }
-
-
-        // Ordinamento semantico dei voti in Java, se richiesto
-        if ("voto".equalsIgnoreCase(sortField)) {
-            Comparator<Studente> votoComparator = Comparator.comparingInt(s -> votoToPriority(s.getVoto()));
-            if ("desc".equalsIgnoreCase(sortDir)) {
-                votoComparator = votoComparator.reversed();
-            }
-            studenti.sort(votoComparator);
         }
-    }
         return studenti;
-    }
-
-    // Metodo di supporto per convertire i voti in un indice ordinabile semanticamente
-    private int votoToPriority(String voto) {
-        if (voto == null || voto.trim().isEmpty()) return 0;
-        switch (voto.toLowerCase()) {
-            case "assente": return 1;
-            case "rimandato": return 2;
-            case "riprovato": return 3;
-            case "30 e lode": return 17;
-            default:
-                try {
-                    int val = Integer.parseInt(voto);
-                    if (val >= 18 && val <= 30) {
-                        return 3 + (val - 17); // 18 → 4, ..., 30 → 16
-                    }
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
-                }
-                return Integer.MAX_VALUE; // Valore sconosciuto o non gestito
-        }
     }
 
 }
