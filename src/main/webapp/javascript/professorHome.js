@@ -7,6 +7,7 @@ const homeView = document.getElementById("home-view");
 const verbaliView = document.getElementById("verbali-view");
 const appelliView = document.getElementById("appelli-view");
 const iscrittiView = document.getElementById("iscritti-view");
+const modificaVotoView = document.getElementById("modifica-voto-view");
 
 const verbaliLink = document.getElementById("verbali-link");
 const backToHomeNav = document.getElementById("back-to-home-nav");
@@ -21,11 +22,26 @@ let currentSortDir = "asc";
 // Variabile globale per memorizzare i dati degli iscritti
 let iscrittiData = [];
 
+function showModificaVotoView() {
+    homeView.classList.add("hidden");
+    verbaliView.classList.add("hidden");
+    appelliView.classList.add("hidden");
+    iscrittiView.classList.add("hidden");
+    modificaVotoView.classList.remove("hidden");
+    verbaliLink.classList.add("hidden");
+    backToHomeNav.classList.remove("hidden");
+    mainTitle.textContent = "Modifica Voto Studente";
+
+    // Nascondi i bottoni azioni dalla nav
+    hideActionButtons();
+}
+
 function showHomeView() {
     homeView.classList.remove("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
     iscrittiView.classList.add("hidden");
+    modificaVotoView.classList.add("hidden");
     verbaliLink.classList.remove("hidden");
     backToHomeNav.classList.add("hidden");
     mainTitle.textContent = "Welcome to the Professor's Home Page";
@@ -39,6 +55,7 @@ function showVerbaliView() {
     verbaliView.classList.remove("hidden");
     appelliView.classList.add("hidden");
     iscrittiView.classList.add("hidden");
+    modificaVotoView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Verbali degli Studenti";
@@ -52,6 +69,7 @@ function showAppelliView() {
     verbaliView.classList.add("hidden");
     appelliView.classList.remove("hidden");
     iscrittiView.classList.add("hidden");
+    modificaVotoView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Seleziona un Appello";
@@ -65,6 +83,7 @@ function showIscrittiView() {
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
     iscrittiView.classList.remove("hidden");
+    modificaVotoView.classList.add("hidden");
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Studenti Iscritti all'Appello";
@@ -439,34 +458,87 @@ function addModifyEventListeners() {
             const appelloId = this.getAttribute('data-appello-id');
             const corsoId = this.getAttribute('data-corso-id');
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'VisualizzaFormModificaVoto';
+            console.log('Modifica clicked - studentId:', studentId, 'appelloId:', appelloId, 'corsoId:', corsoId);
 
-            const inputStudent = document.createElement('input');
-            inputStudent.type = 'hidden';
-            inputStudent.name = 'idStudente';
-            inputStudent.value = studentId;
-
-            const inputAppello = document.createElement('input');
-            inputAppello.type = 'hidden';
-            inputAppello.name = 'idAppello';
-            inputAppello.value = appelloId;
-
-            const inputCorso = document.createElement('input');
-            inputCorso.type = 'hidden';
-            inputCorso.name = 'idCorso';
-            inputCorso.value = corsoId;
-
-            form.appendChild(inputStudent);
-            form.appendChild(inputAppello);
-            form.appendChild(inputCorso);
-
-            document.body.appendChild(form);
-            form.submit();
+            // Chiamata AJAX per ottenere i dati dello studente
+            loadStudentForModification(studentId, appelloId, corsoId);
         });
     });
 }
+
+function loadStudentForModification(studentId, appelloId, corsoId) {
+    // Crea un form temporaneo per makeCall
+    const tempForm = document.createElement('form');
+
+    const inputStudente = document.createElement('input');
+    inputStudente.type = 'hidden';
+    inputStudente.name = 'idStudente';
+    inputStudente.value = studentId;
+    tempForm.appendChild(inputStudente);
+
+    const inputAppello = document.createElement('input');
+    inputAppello.type = 'hidden';
+    inputAppello.name = 'idAppello';
+    inputAppello.value = appelloId;
+    tempForm.appendChild(inputAppello);
+
+    const inputCorso = document.createElement('input');
+    inputCorso.type = 'hidden';
+    inputCorso.name = 'idCorso';
+    inputCorso.value = corsoId;
+    tempForm.appendChild(inputCorso);
+
+    console.log('Calling VisualizzaFormModificaVoto with:', {studentId, appelloId, corsoId});
+
+    makeCall("POST", "VisualizzaFormModificaVoto", tempForm, function(req) {
+        if (req.readyState === XMLHttpRequest.DONE) {
+            console.log('Response status:', req.status);
+            console.log('Response text:', req.responseText);
+
+            if (req.status === 200) {
+                try {
+                    const data = JSON.parse(req.responseText);
+
+                    // Popola il form con i dati dello studente
+                    document.getElementById('modifica-matricola').textContent = data.studente.matricola;
+                    document.getElementById('modifica-nome').textContent = data.studente.nome;
+                    document.getElementById('modifica-cognome').textContent = data.studente.cognome;
+                    document.getElementById('modifica-corso-laurea').textContent = data.studente.corsoDiLaurea;
+
+                    document.getElementById('modifica-id-studente').value = data.studente.idUtente;
+                    document.getElementById('modifica-id-appello').value = data.idAppello;
+                    document.getElementById('modifica-id-corso').value = data.idCorso;
+
+                    // Seleziona il voto attuale se presente
+                    const votoSelect = document.getElementById('voto');
+                    votoSelect.value = data.studente.voto || '';
+
+                    // Mostra la view di modifica
+                    showModificaVotoView();
+                } catch (error) {
+                    console.error('Errore parsing JSON:', error);
+                    alert('Errore nel caricamento dei dati dello studente');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(req.responseText);
+                    alert(errorData.error || 'Errore nel caricamento dei dati dello studente');
+                } catch (e) {
+                    alert('Errore nel caricamento dei dati dello studente');
+                }
+            }
+        }
+    }, false); // false per non resettare il form
+}
+
+// Funzione per tornare alla lista iscritti
+window.backToIscritti = function() {
+    if (currentAppelloId && currentCorsoId) {
+        showIscrittiView();
+        // Ricarica la lista per mostrare eventuali modifiche
+        loadIscritti(currentAppelloId, currentCorsoId, currentSortField, currentSortDir);
+    }
+};
 
 function addActionButtonEventListeners() {
     document.querySelectorAll('.action-button[data-action]').forEach(button => {
@@ -476,17 +548,14 @@ function addActionButtonEventListeners() {
             const appelloId = this.getAttribute('data-appello-id');
             const corsoId = this.getAttribute('data-corso-id');
 
-            let actionUrl = '';
             if (action === 'pubblica') {
-                actionUrl = 'PubblicaVoti';
+                // Gestione AJAX per pubblica
+                handlePubblicaVoti(appelloId, corsoId);
             } else if (action === 'verbalizza') {
-                actionUrl = 'VerbalizzaIscritti';
-            }
-
-            if (actionUrl) {
+                // Per ora manteniamo il comportamento originale per verbalizza
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = actionUrl;
+                form.action = 'VerbalizzaIscritti';
 
                 const inputAppello = document.createElement('input');
                 inputAppello.type = 'hidden';
@@ -506,6 +575,51 @@ function addActionButtonEventListeners() {
             }
         });
     });
+}
+
+function handlePubblicaVoti(appelloId, corsoId) {
+    // Conferma prima di pubblicare
+    if (!confirm('Sei sicuro di voler pubblicare i voti? Gli studenti riceveranno una notifica via email.')) {
+        return;
+    }
+
+    // Crea un form temporaneo per makeCall
+    const tempForm = document.createElement('form');
+
+    const inputAppello = document.createElement('input');
+    inputAppello.type = 'hidden';
+    inputAppello.name = 'idAppello';
+    inputAppello.value = appelloId;
+    tempForm.appendChild(inputAppello);
+
+    const inputCorso = document.createElement('input');
+    inputCorso.type = 'hidden';
+    inputCorso.name = 'idCorso';
+    inputCorso.value = corsoId;
+    tempForm.appendChild(inputCorso);
+
+    makeCall("POST", "PubblicaVoti", tempForm, function(req) {
+        if (req.readyState === XMLHttpRequest.DONE) {
+            if (req.status === 200) {
+                try {
+                    const data = JSON.parse(req.responseText);
+                    alert(data.message || 'Voti pubblicati con successo');
+                    // Ricarica la lista iscritti per aggiornare gli stati
+                    loadIscritti(appelloId, corsoId, currentSortField, currentSortDir);
+                } catch (error) {
+                    console.error('Errore parsing JSON:', error);
+                    alert('Errore nella pubblicazione dei voti');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(req.responseText);
+                    alert(errorData.error || 'Errore nella pubblicazione dei voti');
+                } catch (e) {
+                    alert('Errore nella pubblicazione dei voti');
+                }
+            }
+        }
+    }, false);
 }
 
 function loadVerbali() {
@@ -596,8 +710,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("back-to-home-nav").addEventListener("click", function(e) {
         e.preventDefault();
 
+        // Se siamo nella view modifica voto, torna agli iscritti
+        if (!modificaVotoView.classList.contains("hidden")) {
+            backToIscritti();
+        }
         // Se siamo nella view iscritti, torna agli appelli
-        if (!iscrittiView.classList.contains("hidden")) {
+        else if (!iscrittiView.classList.contains("hidden")) {
             if (currentCorsoId && currentCorsoName) {
                 showAppelliView();
                 loadAppelli(currentCorsoId, currentCorsoName);
@@ -608,6 +726,34 @@ document.addEventListener("DOMContentLoaded", () => {
             // Altrimenti torna alla home
             showHomeView();
         }
+    });
+
+    // Form submit handler per modifica voto
+    document.getElementById("modifica-voto-form").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        // makeCall si aspetta un form element, non FormData
+        makeCall("POST", "ModificaVoto", this, function(req) {
+            if (req.readyState === XMLHttpRequest.DONE) {
+                if (req.status === 200) {
+                    try {
+                        const data = JSON.parse(req.responseText);
+                        alert(data.message || 'Voto modificato con successo');
+                        backToIscritti();
+                    } catch (error) {
+                        console.error('Errore parsing JSON:', error);
+                        alert('Errore nella modifica del voto');
+                    }
+                } else {
+                    try {
+                        const errorData = JSON.parse(req.responseText);
+                        alert(errorData.error || 'Errore nella modifica del voto');
+                    } catch (e) {
+                        alert('Errore nella modifica del voto');
+                    }
+                }
+            }
+        }, false); // false per non resettare il form automaticamente
     });
 });
 

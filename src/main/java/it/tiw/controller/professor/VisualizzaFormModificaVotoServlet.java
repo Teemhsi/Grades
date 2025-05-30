@@ -5,81 +5,61 @@ import it.tiw.beans.Utente;
 import it.tiw.dao.StudenteDAO;
 import it.tiw.util.DbConnectionHandler;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Servlet che visualizza il form per la modifica del voto di uno studente
- * iscritto ad un appello, fornendo i dati necessari alla pagina.
+ * Servlet che restituisce i dati dello studente in formato JSON
+ * per la modifica del voto in modalità SPA
  */
 @WebServlet("/VisualizzaFormModificaVoto")
+@MultipartConfig
 public class VisualizzaFormModificaVotoServlet extends HttpServlet {
-    private TemplateEngine templateEngine;
-    private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
+    private Gson gson = new Gson();
 
-    /**
-     * Inizializza il motore Thymeleaf e la connessione al database.
-     *
-     * @throws ServletException in caso di errore di inizializzazione
-     */
     @Override
     public void init() throws ServletException {
-        thymeleafApp = JakartaServletWebApplication.buildApplication(getServletContext());
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(thymeleafApp);
-        templateResolver.setPrefix("/WEB-INF/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
-    /**
-     * Gestisce la richiesta POST per visualizzare il form di modifica voto,
-     * controllando autenticazione, parametri e caricando i dati studente.
-     *
-     * @param req  richiesta HTTP
-     * @param resp risposta HTTP
-     * @throws ServletException in caso di errore servlet
-     * @throws IOException      in caso di errore I/O
-     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html;charset=UTF-8");
         // Controllo autenticazione docente
         Utente docente = (Utente) req.getSession().getAttribute("user");
         if (docente == null || !"docente".equalsIgnoreCase(docente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Non autorizzato");
+            resp.getWriter().write(error.toString());
             return;
         }
+
         String idStudenteStr = req.getParameter("idStudente");
         String idAppelloStr = req.getParameter("idAppello");
         String idCorsoStr = req.getParameter("idCorso");
-
-
 
         // Verifica parametri obbligatori
         if (idStudenteStr == null || idAppelloStr == null || idCorsoStr == null ||
                 idStudenteStr.trim().isEmpty() || idAppelloStr.trim().isEmpty() ||
                 idCorsoStr.trim().isEmpty()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri mancanti");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Parametri mancanti");
+            resp.getWriter().write(error.toString());
             return;
         }
 
@@ -89,11 +69,21 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
             idAppello = Integer.parseInt(idAppelloStr);
             idCorso = Integer.parseInt(idCorsoStr);
             if(idStudente < 1 || idAppello < 1 || idCorso < 1){
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri numerici non validi");
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                JsonObject error = new JsonObject();
+                error.addProperty("error", "Parametri numerici non validi");
+                resp.getWriter().write(error.toString());
                 return;
             }
         } catch (NumberFormatException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Parametri non validi");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Parametri non validi");
+            resp.getWriter().write(error.toString());
             return;
         }
 
@@ -102,27 +92,36 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
             Studente studente = studenteDAO.getStudentById(idStudente);
 
             if (studente == null) {
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Studente non trovato");
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                JsonObject error = new JsonObject();
+                error.addProperty("error", "Studente non trovato");
+                resp.getWriter().write(error.toString());
                 return;
             }
 
-            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
-            WebContext ctx = new WebContext(webExchange, req.getLocale());
+            // Costruisci la risposta JSON
+            JsonObject response = new JsonObject();
+            response.add("studente", gson.toJsonTree(studente));
+            response.addProperty("idAppello", idAppello);
+            response.addProperty("idCorso", idCorso);
 
-            ctx.setVariable("studente", studente);
-            ctx.setVariable("idAppello", idAppello);
-            ctx.setVariable("idCorso", idCorso);
-
-            templateEngine.process("formModificaVoto", ctx, resp.getWriter());
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write(response.toString());
 
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Server error: " + e.getMessage());
+            resp.getWriter().write(error.toString());
         }
     }
 
-    /**
-     * Chiude la connessione al database alla distruzione della servlet.
-     */
     @Override
     public void destroy() {
         try {
