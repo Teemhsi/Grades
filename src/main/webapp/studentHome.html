@@ -1,16 +1,191 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home Docente (SPA)</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Student's Home Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2C3E50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        nav {
+            background-color: #34495E;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #1ABC9C;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #16A085;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        .container {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .course-list {
+            margin-top: 20px;
+        }
+
+        .course-item {
+            background-color: white;
+            padding: 15px;
+            margin: 10px auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+        }
+
+        .course-name {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .select-button {
+            background-color: #1ABC9C;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .select-button:hover {
+            background-color: #16A085;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .appello-list {
+            margin-top: 20px;
+        }
+
+        .appello-item {
+            background-color: white;
+            padding: 15px;
+            margin: 10px auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+        }
+
+        .appello-date {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: #2C3E50;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
 </head>
 <body>
-<h1>I miei corsi</h1>
-<ul id="listaCorsi">Caricamento...</ul>
 
-<!-- Importa gli script -->
-<script src="utils.js"></script>
-<script src="professor-home.js"></script>
+<header>
+    <h1 id="main-title">Welcome to the Student's Home Page</h1>
+    <div class="user-info">
+        <span id="user-email">Email: ...</span><br>
+        <span id="user-role">Role: ...</span>
+    </div>
+</header>
+
+<nav>
+    <div class="nav-center">
+        <a href="#" id="back-to-home-nav" class="hidden">← Go Back</a>
+    </div>
+    <div class="nav-right">
+        <a href="LogoutHandler">Logout</a>
+    </div>
+</nav>
+
+<!-- Main Home View -->
+<div id="home-view">
+    <div id="courses-container" class="container" style="display:none;"></div>
+    <div id="no-courses-container" class="container" style="display:none;">
+        <p>If you cannot see any courses, please contact the head office.</p>
+    </div>
+</div>
+
+<!-- Appelli View -->
+<div id="appelli-view" class="container hidden">
+    <div class="course-info">
+        <h2 id="course-name-title">Course Name</h2>
+        <p id="appelli-count">Total Exam Sessions Found: <span id="appelli-total">0</span></p>
+    </div>
+
+    <div id="appelli-content" class="appello-list">
+        <!-- Appelli list will be inserted here -->
+    </div>
+</div>
+
+<!-- Esito View -->
+<div id="esito-view" class="container hidden">
+    <div id="esito-content">
+        <!-- Esito details will be inserted here -->
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Student Portal. All Rights Reserved.</p>
+</footer>
+
+<script type="module" src="javascript/studentHome.js"></script>
+
 </body>
 </html>

@@ -9,12 +9,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.WebApplicationTemplateResolver;
-import org.thymeleaf.web.IWebExchange;
-import org.thymeleaf.web.servlet.JakartaServletWebApplication;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -23,34 +19,25 @@ import java.util.List;
 
 @WebServlet("/student-home")
 public class StudentHomeServlet extends HttpServlet {
-    private TemplateEngine templateEngine;
-    private JakartaServletWebApplication thymeleafApp;
     private Connection connection;
+    private Gson gson = new Gson();
 
     @Override
     public void init() throws ServletException {
-        thymeleafApp = JakartaServletWebApplication.buildApplication(getServletContext());
-
-        WebApplicationTemplateResolver templateResolver = new WebApplicationTemplateResolver(thymeleafApp);
-        templateResolver.setPrefix("/WEB-INF/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
         connection = DbConnectionHandler.getConnection(getServletContext());
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/html;charset=UTF-8");
+        JsonObject jsonResponse = new JsonObject();
 
         Utente studente = (Utente) req.getSession().getAttribute("user");
         if (studente == null || !"studente".equalsIgnoreCase(studente.getRuolo())) {
-            resp.sendRedirect(req.getContextPath() + "/");
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Non autorizzato");
+            resp.getWriter().write(jsonResponse.toString());
             return;
         }
 
@@ -58,17 +45,23 @@ public class StudentHomeServlet extends HttpServlet {
             CorsoDAO corsoDAO = new CorsoDAO(connection);
             List<Corso> corsi = corsoDAO.findCorsiByStudentIdOrderedDesc(studente.getIdUtente());
 
-            IWebExchange webExchange = thymeleafApp.buildExchange(req, resp);
-            WebContext ctx = new WebContext(webExchange, req.getLocale());
-
-            ctx.setVariable("corsi", corsi);
-
-            templateEngine.process("studentHome", ctx, resp.getWriter());
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().write(gson.toJson(corsi));
 
         } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Database error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         } catch (Exception e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Server error: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            jsonResponse.addProperty("error", "Server error: " + e.getMessage());
+            resp.getWriter().write(jsonResponse.toString());
         }
     }
 
