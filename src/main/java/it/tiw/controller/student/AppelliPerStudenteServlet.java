@@ -1,5 +1,6 @@
 package it.tiw.controller.student;
 
+import com.google.gson.GsonBuilder;
 import it.tiw.beans.Appello;
 import it.tiw.beans.Utente;
 import it.tiw.dao.AppelloDAO;
@@ -89,6 +90,10 @@ public class AppelliPerStudenteServlet extends HttpServlet {
             // Ottiene gli appelli per il corso e studente, ordinati decrescente
             List<Appello> appelli = appelloDAO.findAppelliByCorsoAndStudenteOrderedDesc(idCorso, student.getIdUtente());
             System.out.println(appelli.get(0).getDataAppello());
+            gson = new GsonBuilder()
+                    .setDateFormat("yyyy-MM-dd")
+                    .create();
+
 
             // Restituisce gli appelli in formato JSON
             resp.setStatus(HttpServletResponse.SC_OK);

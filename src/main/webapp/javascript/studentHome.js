@@ -109,6 +109,7 @@ function loadAppelli(corsoId, corsoName) {
             if (req.status === 200) {
                 const appelli = JSON.parse(req.responseText);
                 appelliTotal.textContent = appelli.length;
+                console.log(appelli.map(appello => formatDate(appello.dataAppello)));
 
                 if (appelli.length > 0) {
                     appelliContent.innerHTML = appelli.map(appello => `
