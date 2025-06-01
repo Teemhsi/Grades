@@ -109,7 +109,6 @@ function loadAppelli(corsoId, corsoName) {
             if (req.status === 200) {
                 const appelli = JSON.parse(req.responseText);
                 appelliTotal.textContent = appelli.length;
-                console.log(appelli.map(appello => formatDate(appello.dataAppello)));
 
                 if (appelli.length > 0) {
                     appelliContent.innerHTML = appelli.map(appello => `
@@ -156,14 +155,88 @@ function addEsitoEventListeners() {
 }
 
 function loadEsito(appelloId, corsoId) {
-    makeCall("GET", `EsitoStudente?idAppello=${appelloId}&idCorso=${corsoId}`, null, function(req) {
+    makeCall("GET", `GestioneVotiStudente?idAppello=${appelloId}&idCorso=${corsoId}`, null, function(req) {
         if (req.readyState === XMLHttpRequest.DONE) {
             const esitoContent = document.getElementById("esito-content");
 
             if (req.status === 200) {
                 try {
                     const data = JSON.parse(req.responseText);
-                    // TO DO: Display esito data
+
+                    if (!data.iscrizionePresente) {
+                        esitoContent.innerHTML = "<p>If you cannot see any call details, you might not be enrolled in the call.</p>";
+                        showEsitoView();
+                        return;
+                    }
+
+                    const iscrizione = data.iscrizione;
+                    const appello = data.appello;
+                    const corso = data.corso;
+                    const studente = data.studente;
+                    const votiValidi = data.votiValidi;
+
+                    // Check if vote is published, refused or verbalized
+                    if (iscrizione.statoValutazione === 'Pubblicato' ||
+                        iscrizione.statoValutazione === 'Rifiutato' ||
+                        iscrizione.statoValutazione === 'Verbalizzato') {
+
+                        let tableHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID Studente</th>
+                                        <th>ID Appello</th>
+                                        <th>Voto</th>
+                                        <th>Stato Valutazione</th>
+                                        ${iscrizione.statoValutazione === 'Rifiutato' ? '<th>Note</th>' : ''}
+                                        <th>Data Appello</th>
+                                        <th>Nome Corso</th>
+                                        <th>Matricola</th>
+                                        <th>Nome</th>
+                                        <th>Cognome</th>
+                                        <th>Corso di Laurea</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id="esito-row" 
+                                        ${iscrizione.statoValutazione === 'Pubblicato' && votiValidi.includes(iscrizione.voto) ?
+                            'class="draggable-row" draggable="true"' : ''}>
+                                        <td>${iscrizione.idStudente}</td>
+                                        <td>${iscrizione.idAppello}</td>
+                                        <td class="${(iscrizione.voto === 'Rimandato' || iscrizione.voto === 'Riprovato') ? 'red-text' : ''}">
+                                            ${iscrizione.voto}
+                                        </td>
+                                        <td class="${iscrizione.statoValutazione === 'Rifiutato' ? 'red-text' : ''}">
+                                            ${iscrizione.statoValutazione}
+                                        </td>
+                                        ${iscrizione.statoValutazione === 'Rifiutato' ? '<td>Il voto è stato rifiutato</td>' : ''}
+                                        <td>${formatDate(appello.dataAppello)}</td>
+                                        <td>${corso.nome}</td>
+                                        <td>${studente.matricola}</td>
+                                        <td>${studente.nome}</td>
+                                        <td>${studente.cognome}</td>
+                                        <td>${studente.corsoDiLaurea}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        `;
+
+                        esitoContent.innerHTML = tableHTML;
+
+                        // Show trash if vote can be refused
+                        if (iscrizione.statoValutazione === 'Pubblicato' && votiValidi.includes(iscrizione.voto)) {
+                            document.getElementById('trash-container').style.display = 'block';
+                            setupDragAndDrop(iscrizione.idStudente, iscrizione.idAppello, data.idCorso);
+                        } else {
+                            document.getElementById('trash-container').style.display = 'none';
+                        }
+
+                    } else {
+                        // Vote not yet defined
+                        esitoContent.innerHTML = "<p>Voto ancora non definito.</p>";
+                        document.getElementById('trash-container').style.display = 'none';
+                    }
+
                     showEsitoView();
                 } catch (error) {
                     console.error('Error parsing JSON:', error);
@@ -175,6 +248,103 @@ function loadEsito(appelloId, corsoId) {
         }
     });
 }
+
+// Global variables for drag and drop
+let draggedData = null;
+
+function setupDragAndDrop(idStudente, idAppello, idCorso) {
+    const draggableRow = document.getElementById('esito-row');
+    const trashIcon = document.getElementById('trash-icon');
+    const trashContainer = document.getElementById('trash-container');
+
+    draggableRow.addEventListener('dragstart', function(e) {
+        e.target.classList.add('dragging');
+        draggedData = {
+            idStudente: idStudente,
+            idAppello: idAppello,
+            idCorso: idCorso
+        };
+    });
+
+    draggableRow.addEventListener('dragend', function(e) {
+        e.target.classList.remove('dragging');
+    });
+
+    trashContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        trashIcon.classList.add('drag-over');
+    });
+
+    trashContainer.addEventListener('dragleave', function(e) {
+        trashIcon.classList.remove('drag-over');
+    });
+
+    trashContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        trashIcon.classList.remove('drag-over');
+
+        if (draggedData) {
+            // Show confirmation modal
+            document.getElementById('confirm-modal').style.display = 'block';
+        }
+    });
+}
+
+// Modal functions
+window.cancelReject = function() {
+    document.getElementById('confirm-modal').style.display = 'none';
+    draggedData = null;
+};
+
+window.confirmReject = function() {
+    if (!draggedData) return;
+
+    const tempForm = document.createElement('form');
+
+    const inputStudente = document.createElement('input');
+    inputStudente.type = 'hidden';
+    inputStudente.name = 'idStudente';
+    inputStudente.value = draggedData.idStudente;
+    tempForm.appendChild(inputStudente);
+
+    const inputAppello = document.createElement('input');
+    inputAppello.type = 'hidden';
+    inputAppello.name = 'idAppello';
+    inputAppello.value = draggedData.idAppello;
+    tempForm.appendChild(inputAppello);
+
+    const inputCorso = document.createElement('input');
+    inputCorso.type = 'hidden';
+    inputCorso.name = 'idCorso';
+    inputCorso.value = draggedData.idCorso;
+    tempForm.appendChild(inputCorso);
+
+    makeCall("POST", "RifiutaVoto", tempForm, function(req) {
+        if (req.readyState === XMLHttpRequest.DONE) {
+            document.getElementById('confirm-modal').style.display = 'none';
+
+            if (req.status === 200) {
+                try {
+                    const data = JSON.parse(req.responseText);
+                    alert(data.message || 'Voto rifiutato con successo');
+                    // Reload esito to show updated status
+                    loadEsito(draggedData.idAppello, draggedData.idCorso);
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    alert('Errore nel rifiuto del voto');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(req.responseText);
+                    alert(errorData.error || 'Errore nel rifiuto del voto');
+                } catch (e) {
+                    alert('Errore nel rifiuto del voto');
+                }
+            }
+            draggedData = null;
+        }
+    }, false);
+};
 
 // Utility function for date formatting
 function formatDate(dateString) {

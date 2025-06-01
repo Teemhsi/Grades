@@ -101,17 +101,11 @@ public class AppelliPerStudenteServlet extends HttpServlet {
             resp.setCharacterEncoding("UTF-8");
             resp.getWriter().write(gson.toJson(appelli));
 
-        } catch (SQLException e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            jsonResponse.addProperty("error", "Errore database: " + e.getMessage());
-            resp.getWriter().write(jsonResponse.toString());
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
-            jsonResponse.addProperty("error", "Errore server: " + e.getMessage());
+            jsonResponse.addProperty("error", "Server internal error ");
             resp.getWriter().write(jsonResponse.toString());
         }
     }

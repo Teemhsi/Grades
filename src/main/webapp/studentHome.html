@@ -124,6 +124,112 @@
             font-weight: bold;
         }
 
+        /* Esito View Styles */
+        #esito-view table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        #esito-view th, #esito-view td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        #esito-view th {
+            background-color: #f4f4f4;
+        }
+
+        .red-text {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Drag and Drop Styles */
+        .draggable-row {
+            cursor: move;
+            transition: opacity 0.3s;
+        }
+
+        .draggable-row.dragging {
+            opacity: 0.5;
+        }
+
+        .trash-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .trash-icon {
+            font-size: 60px;
+            color: #e74c3c;
+            transition: transform 0.3s;
+        }
+
+        .trash-icon.drag-over {
+            transform: scale(1.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-cancel {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-confirm {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background-color: #c0392b;
+        }
+
         footer {
             background-color: #2C3E50;
             color: white;
@@ -178,6 +284,24 @@
 <div id="esito-view" class="container hidden">
     <div id="esito-content">
         <!-- Esito details will be inserted here -->
+    </div>
+
+    <!-- Trash container for drag and drop -->
+    <div id="trash-container" class="trash-container" style="display: none;">
+        <div class="trash-icon" id="trash-icon">🗑️</div>
+        <p>Trascina qui per rifiutare il voto</p>
+    </div>
+</div>
+
+<!-- Modal for confirm -->
+<div id="confirm-modal" class="modal">
+    <div class="modal-content">
+        <h2>Conferma Rifiuto Voto</h2>
+        <p>Sei sicuro di voler rifiutare questo voto?</p>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="cancelReject()">CANCELLA</button>
+            <button class="btn-confirm" onclick="confirmReject()">CONFERMA</button>
+        </div>
     </div>
 </div>
 

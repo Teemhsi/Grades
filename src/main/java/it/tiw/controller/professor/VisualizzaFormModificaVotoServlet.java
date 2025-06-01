@@ -117,7 +117,7 @@ public class VisualizzaFormModificaVotoServlet extends HttpServlet {
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
             JsonObject error = new JsonObject();
-            error.addProperty("error", "Server error: " + e.getMessage());
+            error.addProperty("error", "Server internal error");
             resp.getWriter().write(error.toString());
         }
     }

@@ -119,17 +119,11 @@ public class PubblicaVotiServlet extends HttpServlet {
             jsonResponse.addProperty("idCorso", idCorso);
             resp.getWriter().write(jsonResponse.toString());
 
-        } catch (SQLException e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            jsonResponse.addProperty("error", "Database error: " + e.getMessage());
-            resp.getWriter().write(jsonResponse.toString());
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
-            jsonResponse.addProperty("error", "Server error: " + e.getMessage());
+            jsonResponse.addProperty("error", "Server internal error ");
             resp.getWriter().write(jsonResponse.toString());
         }
     }
