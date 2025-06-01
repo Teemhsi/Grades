@@ -397,6 +397,17 @@ function updateActionButtons(appelloId, corsoId, countInserito, countPubblicatoR
     const actionsContainer = document.getElementById("nav-actions");
     let buttonsHTML = '';
 
+    // Calcola il numero di studenti non inseriti
+    const countNonInserito = iscrittiData.filter(s => s.stato_valutazione === 'Non inserito').length;
+
+    if (countNonInserito > 0) {
+        buttonsHTML += `
+            <button class="btn-multiplo" onclick="openInserimentoMultiplo()">
+                Inserimento Multiplo
+            </button>
+        `;
+    }
+
     if (countInserito > 0) {
         buttonsHTML += `
             <button class="action-button pubblica" data-action="pubblica" 
@@ -828,8 +839,130 @@ function formatDate(dateString) {
     });
 }
 
-// Event listeners
+// Funzioni per inserimento multiplo
+window.openInserimentoMultiplo = function() {
+    const modal = document.getElementById('inserimento-multiplo-modal');
+    const tbody = document.querySelector('#inserimento-multiplo-table tbody');
+
+    // Filtra solo gli studenti con stato "Non inserito"
+    const studentiNonInseriti = iscrittiData.filter(s => s.stato_valutazione === 'Non inserito');
+
+    // Popola la tabella del modal
+    tbody.innerHTML = studentiNonInseriti.map(studente => `
+        <tr>
+            <td>${studente.matricola}</td>
+            <td>${studente.nome}</td>
+            <td>${studente.cognome}</td>
+            <td>${studente.email}</td>
+            <td>
+                <input type="text" 
+                       data-student-id="${studente.idUtente}" 
+                       placeholder="Inserisci voto..."
+                       list="voti-list">
+            </td>
+        </tr>
+    `).join('');
+
+    // Aggiungi datalist per suggerimenti voti
+    if (!document.getElementById('voti-list')) {
+        const datalist = document.createElement('datalist');
+        datalist.id = 'voti-list';
+        datalist.innerHTML = `
+            <option value="Assente">
+            <option value="Rimandato">
+            <option value="Riprovato">
+            ${Array.from({length: 13}, (_, i) => `<option value="${18 + i}">`).join('')}
+            <option value="30 e lode">
+        `;
+        document.body.appendChild(datalist);
+    }
+
+    modal.style.display = 'block';
+};
+
+window.closeInserimentoMultiplo = function() {
+    document.getElementById('inserimento-multiplo-modal').style.display = 'none';
+};
+
+window.inviaVotiMultipli = function() {
+    const inputs = document.querySelectorAll('#inserimento-multiplo-table input[type="text"]');
+    const voti = [];
+
+    inputs.forEach(input => {
+        const voto = input.value.trim();
+        if (voto) {
+            voti.push({
+                idStudente: parseInt(input.getAttribute('data-student-id')),
+                voto: voto
+            });
+        }
+    });
+
+    if (voti.length === 0) {
+        alert('Inserisci almeno un voto prima di inviare');
+        return;
+    }
+
+    // Prepara i dati per l'invio
+    const requestData = {
+        idAppello: currentAppelloId,
+        idCorso: currentCorsoId,
+        voti: voti
+    };
+
+    // Invia i voti tramite AJAX
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'InserimentoMultiplo', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(response.message);
+
+                    // Chiudi il modal
+                    closeInserimentoMultiplo();
+
+                    // Ricarica la lista iscritti
+                    loadIscritti(currentAppelloId, currentCorsoId, currentSortField, currentSortDir);
+                } catch (error) {
+                    console.error('Errore parsing JSON:', error);
+                    alert('Errore nell\'inserimento multiplo');
+                }
+            } else {
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    alert(errorData.error || 'Errore nell\'inserimento multiplo');
+                } catch (e) {
+                    alert('Errore nell\'inserimento multiplo');
+                }
+            }
+        }
+    };
+
+    xhr.send(JSON.stringify(requestData));
+};
+
+// Event listener per chiudere il modal cliccando sulla X
 document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById('inserimento-multiplo-modal');
+    const span = document.getElementsByClassName("close")[0];
+
+    if (span) {
+        span.onclick = function() {
+            closeInserimentoMultiplo();
+        };
+    }
+
+    // Chiudi il modal cliccando fuori
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeInserimentoMultiplo();
+        }
+    };
+
     loadSessionInfo();
     loadCourses();
 

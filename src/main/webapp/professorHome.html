@@ -388,6 +388,36 @@
     </form>
 </div>
 
+<!-- Modal Inserimento Multiplo -->
+<div id="inserimento-multiplo-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Inserimento Multiplo Voti</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <table id="inserimento-multiplo-table">
+                <thead>
+                <tr>
+                    <th>Matricola</th>
+                    <th>Nome</th>
+                    <th>Cognome</th>
+                    <th>Email</th>
+                    <th>Voto</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Righe con studenti non inseriti verranno aggiunte qui -->
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-annulla" onclick="closeInserimentoMultiplo()">Annulla</button>
+            <button class="btn-invia" onclick="inviaVotiMultipli()">INVIA</button>
+        </div>
+    </div>
+</div>
+
 <footer>
     <p>&copy; 2025 Professor Portal. All Rights Reserved.</p>
 </footer>
