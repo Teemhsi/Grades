@@ -133,5 +133,85 @@ public class IscrizioneDAO {
             }
         }
     }
+    // Aggiungi questo metodo nella classe IscrizioneDAO
+
+    /**
+     * Aggiorna multipli voti in una transazione atomica.
+     * Se anche un solo aggiornamento fallisce, viene fatto rollback di tutto.
+     *
+     * @param votiList Lista di oggetti contenenti idStudente, idAppello e voto
+     * @return numero di righe aggiornate con successo
+     * @throws SQLException se si verifica un errore durante l'operazione
+     */
+    public int updateMultipleVotiTransactional(List<VotoUpdate> votiList) throws SQLException {
+        String query = "UPDATE grades.Iscrizioni " +
+                "SET grades.Iscrizioni.voto = ?, grades.Iscrizioni.stato_valutazione = 'Inserito' " +
+                "WHERE grades.Iscrizioni.id_studente = ? AND grades.Iscrizioni.id_appello = ? " +
+                "AND grades.Iscrizioni.stato_valutazione = 'Non inserito'";
+
+        int totalUpdated = 0;
+        boolean autoCommit = connection.getAutoCommit();
+
+        try {
+            // Disabilita auto-commit per gestire la transazione
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement ps = connection.prepareStatement(query)) {
+                for (VotoUpdate voto : votiList) {
+                    ps.setString(1, voto.getVoto());
+                    ps.setInt(2, voto.getIdStudente());
+                    ps.setInt(3, voto.getIdAppello());
+
+                    int affected = ps.executeUpdate();
+                    if (affected == 0) {
+                        throw new SQLException(
+                                String.format("Impossibile aggiornare voto per studente %d nell'appello %d. " +
+                                                "Verifica che lo studente sia iscritto e lo stato sia 'Non inserito'.",
+                                        voto.getIdStudente(), voto.getIdAppello())
+                        );
+                    }
+                    totalUpdated += affected;
+                }
+            }
+
+            // Se arriviamo qui, tutti gli aggiornamenti sono andati a buon fine
+            connection.commit();
+            return totalUpdated;
+
+        } catch (SQLException e) {
+            // In caso di errore, rollback di tutte le modifiche
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                // Log dell'errore di rollback ma rilanciamo l'eccezione originale
+                rollbackEx.printStackTrace();
+            }
+            throw e;
+        } finally {
+            // Ripristina l'auto-commit allo stato originale
+            try {
+                connection.setAutoCommit(autoCommit);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Classe helper per passare i dati
+    public static class VotoUpdate {
+        private final int idStudente;
+        private final int idAppello;
+        private final String voto;
+
+        public VotoUpdate(int idStudente, int idAppello, String voto) {
+            this.idStudente = idStudente;
+            this.idAppello = idAppello;
+            this.voto = voto;
+        }
+
+        public int getIdStudente() { return idStudente; }
+        public int getIdAppello() { return idAppello; }
+        public String getVoto() { return voto; }
+    }
 
 }

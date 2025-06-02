@@ -18,6 +18,7 @@ import com.google.gson.JsonElement;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -100,23 +101,23 @@ public class InserimentoMultiploServlet extends HttpServlet {
             }
 
             IscrizioneDAO iscrizioneDAO = new IscrizioneDAO(connection);
-            int successCount = 0;
-            int failCount = 0;
-            JsonArray errors = new JsonArray();
 
-            // Processa ogni voto
+            // Prepara la lista di aggiornamenti
+            List<IscrizioneDAO.VotoUpdate> votoUpdates = new ArrayList<>();
+
+            // Valida tutti i voti prima di procedere
             for (JsonElement votoElement : voti) {
                 JsonObject votoObj = votoElement.getAsJsonObject();
                 Integer idStudente = votoObj.has("idStudente") ? votoObj.get("idStudente").getAsInt() : null;
                 String voto = votoObj.has("voto") ? votoObj.get("voto").getAsString() : null;
 
                 if (idStudente == null || voto == null || voto.trim().isEmpty()) {
-                    failCount++;
-                    JsonObject error = new JsonObject();
-                    error.addProperty("idStudente", idStudente);
-                    error.addProperty("error", "Dati mancanti");
-                    errors.add(error);
-                    continue;
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    jsonResponse.addProperty("error", "Dati mancanti per uno o più studenti");
+                    resp.getWriter().write(jsonResponse.toString());
+                    return;
                 }
 
                 // Valida il voto
@@ -125,47 +126,38 @@ public class InserimentoMultiploServlet extends HttpServlet {
                         .anyMatch(validVote -> validVote.toLowerCase().equals(votoNormalizzato));
 
                 if (!votoValido) {
-                    failCount++;
-                    JsonObject error = new JsonObject();
-                    error.addProperty("idStudente", idStudente);
-                    error.addProperty("error", "Voto non valido: " + voto);
-                    errors.add(error);
-                    continue;
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.setContentType("application/json");
+                    resp.setCharacterEncoding("UTF-8");
+                    jsonResponse.addProperty("error", "Voto non valido: " + voto + " per studente " + idStudente);
+                    resp.getWriter().write(jsonResponse.toString());
+                    return;
                 }
 
-                try {
-                    // Aggiorna il voto
-                    boolean success = iscrizioneDAO.UpdateIscrizioneByStudenIdandAppelloId(idStudente, idAppello, voto.trim());
-                    if (success) {
-                        successCount++;
-                    } else {
-                        failCount++;
-                        JsonObject error = new JsonObject();
-                        error.addProperty("idStudente", idStudente);
-                        error.addProperty("error", "Aggiornamento fallito");
-                        errors.add(error);
-                    }
-                } catch (Exception e) {
-                    failCount++;
-                    JsonObject error = new JsonObject();
-                    error.addProperty("idStudente", idStudente);
-                    error.addProperty("error", "Errore: " + e.getMessage());
-                    errors.add(error);
-                }
+                votoUpdates.add(new IscrizioneDAO.VotoUpdate(idStudente, idAppello, voto.trim()));
             }
 
-            // Prepara la risposta
-            resp.setStatus(HttpServletResponse.SC_OK);
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", String.format("Inserimento completato: %d successi, %d fallimenti", successCount, failCount));
-            jsonResponse.addProperty("successCount", successCount);
-            jsonResponse.addProperty("failCount", failCount);
-            if (errors.size() > 0) {
-                jsonResponse.add("errors", errors);
+            try {
+                // Esegue tutti gli aggiornamenti in una transazione
+                int updated = iscrizioneDAO.updateMultipleVotiTransactional(votoUpdates);
+
+                // Prepara la risposta di successo
+                resp.setStatus(HttpServletResponse.SC_OK);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", String.format("Inserimento completato: %d voti inseriti con successo", updated));
+                jsonResponse.addProperty("updatedCount", updated);
+                resp.getWriter().write(jsonResponse.toString());
+
+            } catch (SQLException e) {
+                // In caso di errore, tutti gli aggiornamenti sono stati annullati
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                jsonResponse.addProperty("error", "Errore durante l'inserimento: " + e.getMessage());
+                resp.getWriter().write(jsonResponse.toString());
             }
-            resp.getWriter().write(jsonResponse.toString());
 
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

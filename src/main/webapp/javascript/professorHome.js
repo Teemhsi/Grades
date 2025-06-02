@@ -23,7 +23,18 @@ let currentSortDir = "asc";
 // Variabile globale per memorizzare i dati degli iscritti
 let iscrittiData = [];
 
+// IMPROVED MODAL STATE MANAGEMENT
+let modalState = {
+    isOpen: false,
+    currentView: null,
+    originalBodyOverflow: null
+};
+
+// Enhanced view switching functions with modal handling
 function showDettaglioVerbaleView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.add("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
@@ -33,12 +44,13 @@ function showDettaglioVerbaleView() {
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Dettaglio Verbale";
-
-    // Nascondi i bottoni azioni dalla nav
     hideActionButtons();
 }
 
 function showModificaVotoView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.add("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
@@ -48,12 +60,13 @@ function showModificaVotoView() {
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Modifica Voto Studente";
-
-    // Nascondi i bottoni azioni dalla nav
     hideActionButtons();
 }
 
 function showHomeView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.remove("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
@@ -63,12 +76,13 @@ function showHomeView() {
     verbaliLink.classList.remove("hidden");
     backToHomeNav.classList.add("hidden");
     mainTitle.textContent = "Welcome to the Professor's Home Page";
-
-    // Nascondi i bottoni azioni dalla nav
     hideActionButtons();
 }
 
 function showVerbaliView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.add("hidden");
     verbaliView.classList.remove("hidden");
     appelliView.classList.add("hidden");
@@ -78,12 +92,13 @@ function showVerbaliView() {
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Verbali degli Studenti";
-
-    // Nascondi i bottoni azioni dalla nav
     hideActionButtons();
 }
 
 function showAppelliView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.add("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.remove("hidden");
@@ -93,12 +108,13 @@ function showAppelliView() {
     verbaliLink.classList.add("hidden");
     backToHomeNav.classList.remove("hidden");
     mainTitle.textContent = "Seleziona un Appello";
-
-    // Nascondi i bottoni azioni dalla nav
     hideActionButtons();
 }
 
 function showIscrittiView() {
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
     homeView.classList.add("hidden");
     verbaliView.classList.add("hidden");
     appelliView.classList.add("hidden");
@@ -293,7 +309,7 @@ function updateIscrittiView(iscritti, appelloId, corsoId, callDate, sortField, s
     document.getElementById("iscritti-call-date").textContent = "Call Date: " + callDate;
     document.getElementById("iscritti-count").textContent = "Number Of Students in the Call: " + iscritti.length;
 
-    // Update action buttons
+    // Update action buttons (enhanced version)
     updateActionButtons(appelloId, corsoId, countInserito, countPubblicatoRifiutato);
 
     // Update iscritti table
@@ -393,17 +409,18 @@ function updateIscrittiTable(iscritti, sortField, sortDir) {
     }
 }
 
+// ENHANCED updateActionButtons function with modal support
 function updateActionButtons(appelloId, corsoId, countInserito, countPubblicatoRifiutato) {
     const actionsContainer = document.getElementById("nav-actions");
     let buttonsHTML = '';
 
-    // Calcola il numero di studenti non inseriti
+    // Calculate number of non-inserted students
     const countNonInserito = iscrittiData.filter(s => s.stato_valutazione === 'Non inserito').length;
 
-    if (countNonInserito > 0) {
+    if (countNonInserito > 0 && canOpenModal()) {
         buttonsHTML += `
             <button class="btn-multiplo" onclick="openInserimentoMultiplo()">
-                Inserimento Multiplo
+                Inserimento Multiplo (${countNonInserito})
             </button>
         `;
     }
@@ -426,8 +443,10 @@ function updateActionButtons(appelloId, corsoId, countInserito, countPubblicatoR
         `;
     }
 
-    actionsContainer.innerHTML = buttonsHTML;
-    addActionButtonEventListeners();
+    if (actionsContainer) {
+        actionsContainer.innerHTML = buttonsHTML;
+        addActionButtonEventListeners();
+    }
 }
 
 function hideActionButtons() {
@@ -435,6 +454,22 @@ function hideActionButtons() {
     if (actionsContainer) {
         actionsContainer.innerHTML = '';
     }
+}
+
+// Utility function to check if modal should be accessible
+function canOpenModal() {
+    // Check if we're in the right view
+    if (iscrittiView && iscrittiView.classList.contains('hidden')) {
+        return false;
+    }
+
+    // Check if there are students to insert
+    if (!iscrittiData || !Array.isArray(iscrittiData)) {
+        return false;
+    }
+
+    const studentiNonInseriti = iscrittiData.filter(s => s.stato_valutazione === 'Non inserito');
+    return studentiNonInseriti.length > 0;
 }
 
 function addAppelliEventListeners() {
@@ -839,17 +874,54 @@ function formatDate(dateString) {
     });
 }
 
-// Funzioni per inserimento multiplo
+// ===========================
+// IMPROVED MODAL FUNCTIONS
+// ===========================
+
+// Enhanced openInserimentoMultiplo function
 window.openInserimentoMultiplo = function() {
+    console.log('openInserimentoMultiplo called');
+
+    // Prevent opening modal if not in iscritti view
+    if (iscrittiView.classList.contains('hidden')) {
+        console.log('Not in iscritti view, returning');
+        return;
+    }
+
+    // Prevent body scrolling when modal is open
+    modalState.originalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const modal = document.getElementById('inserimento-multiplo-modal');
+    if (!modal) {
+        console.error('Modal not found!');
+        return;
+    }
+
     const tbody = document.querySelector('#inserimento-multiplo-table tbody');
+    if (!tbody) {
+        console.error('Table tbody not found!');
+        return;
+    }
 
-    // Filtra solo gli studenti con stato "Non inserito"
+    // Filter only students with "Non inserito" status
     const studentiNonInseriti = iscrittiData.filter(s => s.stato_valutazione === 'Non inserito');
+    console.log('Studenti non inseriti:', studentiNonInseriti.length);
 
-    // Popola la tabella del modal
+    if (studentiNonInseriti.length === 0) {
+        alert('Non ci sono studenti da inserire.');
+        document.body.style.overflow = modalState.originalBodyOverflow;
+        return;
+    }
+
+    // Set modal state
+    modalState.isOpen = true;
+    modalState.currentView = 'iscritti';
+
+    // Populate modal table
     tbody.innerHTML = studentiNonInseriti.map(studente => `
         <tr>
+            <td><input type="checkbox" class="student-checkbox" data-student-id="${studente.idUtente}" aria-label="Select ${studente.nome} ${studente.cognome}"></td>
             <td>${studente.matricola}</td>
             <td>${studente.nome}</td>
             <td>${studente.cognome}</td>
@@ -858,77 +930,169 @@ window.openInserimentoMultiplo = function() {
                 <input type="text" 
                        data-student-id="${studente.idUtente}" 
                        placeholder="Inserisci voto..."
-                       list="voti-list">
+                       list="voti-list"
+                       maxlength="10"
+                       disabled
+                       aria-label="Grade for ${studente.nome} ${studente.cognome}">
             </td>
         </tr>
     `).join('');
 
-    // Aggiungi datalist per suggerimenti voti
-    if (!document.getElementById('voti-list')) {
-        const datalist = document.createElement('datalist');
-        datalist.id = 'voti-list';
-        datalist.innerHTML = `
-            <option value="Assente">
-            <option value="Rimandato">
-            <option value="Riprovato">
-            ${Array.from({length: 13}, (_, i) => `<option value="${18 + i}">`).join('')}
-            <option value="30 e lode">
-        `;
-        document.body.appendChild(datalist);
+    // Setup event listeners with proper cleanup
+    setupModalEventListeners();
+
+    // Show modal with animation
+    modal.style.display = 'flex';
+    // Force reflow for animation
+    modal.offsetHeight;
+    modal.classList.add('show');
+
+    // Focus management for accessibility
+    setTimeout(() => {
+        const firstCheckbox = modal.querySelector('.student-checkbox');
+        if (firstCheckbox) {
+            firstCheckbox.focus();
+        }
+    }, 350);
+
+    console.log('Modal opened successfully');
+};
+
+// Enhanced closeInserimentoMultiplo function
+window.closeInserimentoMultiplo = function() {
+    console.log('closeInserimentoMultiplo called');
+
+    const modal = document.getElementById('inserimento-multiplo-modal');
+    if (!modal) return;
+
+    // Restore body scroll
+    if (modalState.originalBodyOverflow !== null) {
+        document.body.style.overflow = modalState.originalBodyOverflow;
+        modalState.originalBodyOverflow = null;
     }
 
-    modal.style.display = 'block';
+    // Remove modal classes
+    modal.classList.remove('show');
+
+    // Reset modal state
+    modalState.isOpen = false;
+    modalState.currentView = null;
+
+    // Hide modal after animation
+    setTimeout(() => {
+        modal.style.display = 'none';
+
+        // Clean up modal content
+        const tbody = modal.querySelector('#inserimento-multiplo-table tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+        }
+
+        // Reset select all checkbox
+        const selectAll = document.getElementById('select-all-checkbox');
+        if (selectAll) {
+            selectAll.checked = false;
+        }
+
+        // Clean up event listeners
+        cleanupModalEventListeners();
+
+    }, 300);
+
+    console.log('Modal closed successfully');
 };
 
-window.closeInserimentoMultiplo = function() {
-    document.getElementById('inserimento-multiplo-modal').style.display = 'none';
-};
-
+// Enhanced inviaVotiMultipli function
 window.inviaVotiMultipli = function() {
-    const inputs = document.querySelectorAll('#inserimento-multiplo-table input[type="text"]');
+    const modal = document.getElementById('inserimento-multiplo-modal');
     const voti = [];
+    let hasErrors = false;
+    const errors = [];
 
-    inputs.forEach(input => {
-        const voto = input.value.trim();
-        if (voto) {
-            voti.push({
-                idStudente: parseInt(input.getAttribute('data-student-id')),
-                voto: voto
-            });
+    // Collect data from selected rows
+    document.querySelectorAll('.student-checkbox:checked').forEach(checkbox => {
+        const studentId = checkbox.getAttribute('data-student-id');
+        const votoInput = document.querySelector(`input[type="text"][data-student-id="${studentId}"]`);
+        const voto = votoInput ? votoInput.value.trim() : '';
+
+        if (!voto) {
+            hasErrors = true;
+            const row = checkbox.closest('tr');
+            const studentName = `${row.cells[2].textContent} ${row.cells[3].textContent}`;
+            errors.push(`Voto mancante per ${studentName}`);
+            votoInput.style.borderColor = '#e74c3c';
+        } else {
+            // Validate vote
+            const validVotes = ['Assente', 'Rimandato', 'Riprovato', '30 e lode'];
+            const numericVote = parseInt(voto);
+
+            if (!validVotes.includes(voto) && (isNaN(numericVote) || numericVote < 18 || numericVote > 30)) {
+                hasErrors = true;
+                errors.push(`Voto non valido per ${row.cells[2].textContent} ${row.cells[3].textContent}: ${voto}`);
+                votoInput.style.borderColor = '#e74c3c';
+            } else {
+                votoInput.style.borderColor = '#1ABC9C';
+                voti.push({
+                    idStudente: parseInt(studentId),
+                    voto: voto
+                });
+            }
         }
     });
 
-    if (voti.length === 0) {
-        alert('Inserisci almeno un voto prima di inviare');
+    if (hasErrors) {
+        alert('Errori nei dati:\n' + errors.join('\n'));
         return;
     }
 
-    // Prepara i dati per l'invio
+    if (voti.length === 0) {
+        alert('Seleziona almeno uno studente e inserisci il voto prima di inviare');
+        return;
+    }
+
+    // Confirmation dialog
+    if (!confirm(`Stai per inserire ${voti.length} voti. Confermi?`)) {
+        return;
+    }
+
+    // Show loading state
+    modal.classList.add('modal-loading');
+    const submitButton = modal.querySelector('.btn-invia');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Invio in corso...';
+    submitButton.disabled = true;
+
+    // Prepare request data
     const requestData = {
         idAppello: currentAppelloId,
         idCorso: currentCorsoId,
         voti: voti
     };
 
-    // Invia i voti tramite AJAX
+    // Send AJAX request
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'InserimentoMultiplo', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
 
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
+            // Remove loading state
+            modal.classList.remove('modal-loading');
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    alert(response.message);
+                    alert(response.message || 'Voti inseriti con successo');
 
-                    // Chiudi il modal
+                    // Close modal
                     closeInserimentoMultiplo();
 
-                    // Ricarica la lista iscritti
+                    // Reload student list
                     loadIscritti(currentAppelloId, currentCorsoId, currentSortField, currentSortDir);
                 } catch (error) {
-                    console.error('Errore parsing JSON:', error);
+                    console.error('Error parsing JSON:', error);
                     alert('Errore nell\'inserimento multiplo');
                 }
             } else {
@@ -942,29 +1106,147 @@ window.inviaVotiMultipli = function() {
         }
     };
 
+    xhr.onerror = function() {
+        modal.classList.remove('modal-loading');
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+        alert('Errore di rete nell\'inserimento multiplo');
+    };
+
     xhr.send(JSON.stringify(requestData));
 };
 
-// Event listener per chiudere il modal cliccando sulla X
-document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById('inserimento-multiplo-modal');
-    const span = document.getElementsByClassName("close")[0];
+// Setup modal event listeners
+function setupModalEventListeners() {
+    // Remove any existing listeners first
+    cleanupModalEventListeners();
 
-    if (span) {
-        span.onclick = function() {
-            closeInserimentoMultiplo();
-        };
+    // Checkbox change handlers
+    const checkboxHandler = function() {
+        const studentId = this.getAttribute('data-student-id');
+        const votoInput = document.querySelector(`input[type="text"][data-student-id="${studentId}"]`);
+        const row = this.closest('tr');
+
+        if (votoInput) {
+            votoInput.disabled = !this.checked;
+            if (!this.checked) {
+                votoInput.value = '';
+                votoInput.style.borderColor = '';
+                row.classList.remove('selected-row');
+            } else {
+                row.classList.add('selected-row');
+                // Focus on input when checked
+                setTimeout(() => votoInput.focus(), 100);
+            }
+        }
+    };
+
+    document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', checkboxHandler);
+    });
+
+    // Select all handler
+    const selectAllHandler = function() {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = this.checked;
+            cb.dispatchEvent(new Event('change'));
+        });
+    };
+
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', selectAllHandler);
     }
 
-    // Chiudi il modal cliccando fuori
-    window.onclick = function(event) {
-        if (event.target == modal) {
+    // Input validation handlers
+    document.querySelectorAll('#inserimento-multiplo-table input[type="text"]').forEach(input => {
+        input.addEventListener('input', function() {
+            this.style.borderColor = '';
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const row = this.closest('tr');
+                const nextRow = row.nextElementSibling;
+                if (nextRow) {
+                    const nextInput = nextRow.querySelector('input[type="text"]:not([disabled])');
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            }
+        });
+    });
+
+    // Keyboard navigation
+    const keydownHandler = function(e) {
+        if (!modalState.isOpen) return;
+
+        switch(e.key) {
+            case 'Escape':
+                closeInserimentoMultiplo();
+                break;
+            case 'Enter':
+                if (e.ctrlKey || e.metaKey) {
+                    inviaVotiMultipli();
+                }
+                break;
+        }
+    };
+
+    document.addEventListener('keydown', keydownHandler);
+
+    // Click outside to close
+    const modal = document.getElementById('inserimento-multiplo-modal');
+    const clickOutsideHandler = function(e) {
+        if (e.target === modal) {
             closeInserimentoMultiplo();
         }
     };
 
+    modal.addEventListener('click', clickOutsideHandler);
+
+    // Store handlers for cleanup
+    modal._modalHandlers = {
+        keydownHandler,
+        clickOutsideHandler,
+        checkboxHandler,
+        selectAllHandler
+    };
+}
+
+// Clean up modal event listeners
+function cleanupModalEventListeners() {
+    const modal = document.getElementById('inserimento-multiplo-modal');
+    if (modal && modal._modalHandlers) {
+        document.removeEventListener('keydown', modal._modalHandlers.keydownHandler);
+        modal.removeEventListener('click', modal._modalHandlers.clickOutsideHandler);
+
+        // Clean up other handlers
+        document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+            checkbox.removeEventListener('change', modal._modalHandlers.checkboxHandler);
+        });
+
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.removeEventListener('change', modal._modalHandlers.selectAllHandler);
+        }
+
+        delete modal._modalHandlers;
+    }
+}
+
+// ===========================
+// DOCUMENT READY AND EVENT LISTENERS
+// ===========================
+
+document.addEventListener("DOMContentLoaded", () => {
     loadSessionInfo();
     loadCourses();
+
+    // Initialize modal functionality
+    initializeEnhancedModal();
 
     // Verbali link click handler
     document.getElementById("verbali-link").addEventListener("click", function(e) {
@@ -1029,9 +1311,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Initialize enhanced modal functionality
+function initializeEnhancedModal() {
+    // Add global error handling for modal
+    window.addEventListener('error', function(e) {
+        if (modalState.isOpen) {
+            console.error('Error occurred while modal was open:', e.error);
+            const modal = document.getElementById('inserimento-multiplo-modal');
+            if (modal) {
+                modal.classList.remove('modal-loading');
+            }
+        }
+    });
+
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && modalState.isOpen) {
+            console.log('Page hidden while modal open');
+        }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        if (modalState.isOpen) {
+            closeInserimentoMultiplo();
+        }
+    });
+
+    console.log('Enhanced modal functionality initialized');
+}
+
 // Logout handler
 document.querySelector("a[href='LogoutHandler']").addEventListener("click", function (e) {
     e.preventDefault();
+
+    // Close modal if open before logout
+    if (modalState.isOpen) {
+        closeInserimentoMultiplo();
+    }
 
     fetch("LogoutHandler", {
         method: "GET",
@@ -1042,7 +1359,7 @@ document.querySelector("a[href='LogoutHandler']").addEventListener("click", func
         currentAppelloId = null;
         currentSortField = "cognome";
         currentSortDir = "asc";
-        iscrittiData = []; // Reset anche i dati degli iscritti
+        iscrittiData = [];
 
         sessionStorage.removeItem("user");
         window.location.href = "login.html";
