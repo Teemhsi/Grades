@@ -72,6 +72,7 @@
         <url-pattern>/Verbali</url-pattern>
         <url-pattern>/VerbalizzaIscritti</url-pattern>
         <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
 
         <url-pattern>/student-home</url-pattern>
         <url-pattern>/AppelliStudente</url-pattern>
@@ -93,6 +94,8 @@
         <url-pattern>/Verbali</url-pattern>
         <url-pattern>/VerbalizzaIscritti</url-pattern>
         <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
+
     </filter-mapping>
 
     <filter-mapping>
