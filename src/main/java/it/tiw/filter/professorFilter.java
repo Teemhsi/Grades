@@ -1,19 +1,16 @@
 package it.tiw.filter;
 
-import java.io.IOException;
-
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import it.tiw.beans.Utente;
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-public class IsLoggedGloballyCheck implements Filter{
+import java.io.IOException;
 
-    public IsLoggedGloballyCheck() {}
+public class professorFilter implements Filter {
+
+    public professorFilter() {}
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
@@ -22,11 +19,11 @@ public class IsLoggedGloballyCheck implements Filter{
         HttpServletResponse res = (HttpServletResponse) response;
         String loginPath = req.getServletContext().getContextPath() + "/login.html";
         HttpSession session = req.getSession();
-        if (session.isNew() || session.getAttribute("user") == null) {
+        Utente u =  null;
+        u = (Utente) session.getAttribute("user");
+        if (!u.getRuolo().equalsIgnoreCase("docente")) {
             res.setStatus(403);
-            //res.setHeader("Location", loginPath);
-            //res.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso negato");
-
+            res.sendRedirect(loginPath);
             System.out.print("Login checker FAILED...\n");
             System.out.print("path: " + loginPath + "\n");
             return;
