@@ -2,7 +2,7 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Modifica Voto</title>
+    <title>Edit Grade</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
         html, body {
@@ -67,13 +67,13 @@
 <body>
 
 <div class="container">
-    <h2>Modifica Voto Studente</h2>
+    <h2>Edit Student Grade</h2>
 
     <div class="student-info">
-        <p><strong>Matricola:</strong> <span th:text="${studente.matricola}">123456</span></p>
-        <p><strong>Nome:</strong> <span th:text="${studente.nome}">Mario</span></p>
-        <p><strong>Cognome:</strong> <span th:text="${studente.cognome}">Rossi</span></p>
-        <p><strong>Corso di Laurea:</strong> <span th:text="${studente.corsoDiLaurea}">Informatica</span></p>
+        <p><strong>ID Number:</strong> <span th:text="${studente.matricola}">123456</span></p>
+        <p><strong>First Name:</strong> <span th:text="${studente.nome}">Mario</span></p>
+        <p><strong>Last Name:</strong> <span th:text="${studente.cognome}">Rossi</span></p>
+        <p><strong>Degree Course:</strong> <span th:text="${studente.corsoDiLaurea}">Informatica</span></p>
     </div>
 
     <form th:action="@{/ModificaVoto}" method="post">
@@ -82,9 +82,9 @@
         <input type="hidden" name="idCorso" th:value="${idCorso}" />
 
         <div class="form-group">
-            <label for="voto">Voto:</label>
+            <label for="voto">Grade:</label>
             <select id="voto" name="voto" required>
-                <option th:selected="${studente.voto == null}" value="">-- Seleziona --</option>
+                <option th:selected="${studente.voto == null}" value="">-- Select --</option>
                 <option th:selected="${studente.voto == 'Assente'}" value="Assente">Assente</option>
                 <option th:selected="${studente.voto == 'Rimandato'}" value="Rimandato">Rimandato</option>
                 <option th:selected="${studente.voto == 'Riprovato'}" value="Riprovato">Riprovato</option>
@@ -96,10 +96,10 @@
             </select>
         </div>
 
-        <button type="submit" class="btn-submit">Salva</button>
+        <button type="submit" class="btn-submit">Save</button>
     </form>
 
-    <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso})}" class="btn-back">← Torna alla lista iscritti</a>
+    <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso})}" class="btn-back">← Back to enrolled students list</a>
 </div>
 
 </body>

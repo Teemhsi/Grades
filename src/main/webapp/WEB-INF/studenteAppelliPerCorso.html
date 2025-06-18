@@ -6,13 +6,13 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Appelli del Corso</title>
+  <title>Course Exams</title>
   <link rel="stylesheet" href="styles.css" />
 
 </head>
 <body>
 <header>
-  <h1>Seleziona un Appello</h1>
+  <h1>Select an Exam</h1>
   <div class="user-info">
     <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
     <span th:text="'Role:  ' + ${session.user.ruolo}">Role: professor</span>
@@ -29,15 +29,14 @@
 </nav>
 
 <div class="course-info">
-  <p>(DEBUG): Select a call for course ID <span th:text="${idCorso}">ID Corso</span>.</p>
   <p>Total Calls Found: <span th:text="${appellistudente.size}">0</span></p>
 
 </div>
 
 <div class="appello-list">
   <div th:each="appello : ${appellistudente}" class="appello-item">
-    <span class="appello-date" th:text="${appello.dataAppello}">Data Appello</span>
-    <a th:href="@{/GestioneVotiStudente(idAppello=${appello.idAppello}, idCorso=${idCorso})}" class="select-button">Seleziona</a>
+    <span class="appello-date" th:text="${appello.dataAppello}">Exam Date</span>
+    <a th:href="@{/GestioneVotiStudente(idAppello=${appello.idAppello}, idCorso=${idCorso})}" class="select-button">Select</a>
   </div>
 </div>
 

@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Iscritti all'Appello</title>
+  <title>Enrolled Students</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
 
@@ -64,7 +64,7 @@
 <body>
 
 <header>
-  <h1>Studenti Iscritti all'Appello</h1>
+  <h1>Students Enrolled in the Exam</h1>
   <div class="user-info">
     <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
     <span th:text="'Role: ' + ${session.user.ruolo}">Role: professor</span>
@@ -79,14 +79,14 @@
     <form th:action="@{/PubblicaVoti}" method="post" style="display: inline;">
       <input type="hidden" name="idAppello" th:value="${idAppello}" />
       <input type="hidden" name="idCorso" th:value="${idCorso}" />
-      <button type="submit">Pubblica</button>
+      <button type="submit">Publish</button>
     </form>
   </div>
   <div class="nav-center" th:if="${numberOfstudentHasPubblicatoAndRifiutato > 0}">
     <form th:action="@{/VerbalizzaIscritti}" method="post" style="display: inline;">
       <input type="hidden" name="idAppello" th:value="${idAppello}" />
       <input type="hidden" name="idCorso" th:value="${idCorso}" />
-      <button type="submit">Verbalizza</button>
+      <button type="submit">Report</button>
     </form>
   </div>
   <div class="nav-right">
@@ -96,32 +96,29 @@
 
 
 <div class="container">
-  <p>(DEBUG): Call ID: <span th:text="${idAppello}">Appello ID</span>.</p>
-
-  <h3 th:text="'Call Date: ' + ${callDate}">Appello ID</h3>
+  <h3 th:text="'Call Date: ' + ${callDate}">ID Exam</h3>
   <h3 th:text="'Number Of Students in the Call: ' + ${iscritti.size()}">0</h3>
 
   <table th:if="${iscritti.size() > 0}">
     <thead>
     <tr>
-      <th>id_studente</th>
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='matricola', sortDir=${sortField == 'matricola' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Matricola
+          ID Number
         </a>
         <span th:text="${sortField == 'matricola' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
 
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='cognome', sortDir=${sortField == 'cognome' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Cognome
+          Last Name
         </a>
         <span th:text="${sortField == 'cognome' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
 
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='nome', sortDir=${sortField == 'nome' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Nome
+          First Name
         </a>
         <span th:text="${sortField == 'nome' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
@@ -135,41 +132,41 @@
 
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='corsoDiLaurea', sortDir=${sortField == 'corsoDiLaurea' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Corso di Laurea
+          Degree Course
         </a>
         <span th:text="${sortField == 'corsoDiLaurea' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
 
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='voto', sortDir=${sortField == 'voto' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Voto
+          Grade
         </a>
         <span th:text="${sortField == 'voto' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
 
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='stato_valutazione', sortDir=${sortField == 'stato_valutazione' && sortDir == 'asc' ? 'desc' : 'asc'})}">
-          Stato Valutazione
+          Status
         </a>
         <span th:text="${sortField == 'stato_valutazione' && sortDir == 'asc' ? '↑' : '↓'}"></span> <!-- Conditional sorting arrows -->
       </th>
-      <th>Azione</th>
+      <th>Action</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="studente : ${iscritti}">
       <td th:text="${studente.idUtente}">student id</td>
-      <td th:text="${studente.matricola}">Matricola</td>
-      <td th:text="${studente.cognome}">Cognome</td>
-      <td th:text="${studente.nome}">Nome</td>
+      <td th:text="${studente.matricola}">ID Number</td>
+      <td th:text="${studente.cognome}">Last Name</td>
+      <td th:text="${studente.nome}">First Name</td>
       <td th:text="${studente.email}">Email</td>
-      <td th:text="${studente.corsoDiLaurea}">Corso di Laurea</td>
+      <td th:text="${studente.corsoDiLaurea}">Degree Course</td>
       <td th:text="${studente.voto}"
           th:classappend="${studente.voto == 'Rimandato' or studente.voto == 'Riprovato'} ? 'red-text'">
-        Voto</td>
+        Grade</td>
       <td th:text="${studente.stato_valutazione}"
           th:classappend="${studente.stato_valutazione == 'Rifiutato'} ? 'red-text'">
-        Stato
+        Status
       </td>
       <td>
         <div th:if="${studente.stato_valutazione == 'Non inserito' or studente.stato_valutazione == 'Inserito'}">
@@ -177,7 +174,7 @@
           <input type="hidden" name="idStudente" th:value="${studente.idUtente}" />
           <input type="hidden" name="idAppello" th:value="${idAppello}" />
           <input type="hidden" name="idCorso" th:value="${idCorso}" />
-            <button type="submit">MODIFICA</button>
+            <button type="submit">EDIT</button>
           </form>
         </div>
       </td>

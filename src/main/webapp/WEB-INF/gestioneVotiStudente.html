@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Esito</title>
+    <title>Result</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
 
@@ -87,20 +87,20 @@
         <table>
             <thead>
             <tr>
-                <th>id_studente</th>
-                <th>id_appello</th>
-                <th>voto</th>
-                <th>stato_valutazione</th>
+                <th>Student ID</th>
+                <th>Exam ID</th>
+                <th>Grade</th>
+                <th>Status</th>
                 <div th:if="${iscrizionestudente.statoValutazione == 'Rifiutato'}">
                     <th>note</th>
                 </div>
-                <th>data_appello</th>
-                <th>nome_corso</th>
-                <th>matricola</th>
-                <th>nome</th>
-                <th>cognome</th>
-                <th>corso di laurea</th>
-                <th>azione</th>
+                <th>Exam Date</th>
+                <th>Course</th>
+                <th>ID Number</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Degree Course</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
@@ -109,13 +109,13 @@
                 <td th:text="${iscrizionestudente.idAppello}"></td>
                 <td th:text="${iscrizionestudente.voto}"
                     th:classappend="${iscrizionestudente.voto == 'Rimandato' or iscrizionestudente.voto == 'Riprovato'} ? 'red-text'">
-                    Voto</td>
+                    Grade</td>
                 <td th:text="${iscrizionestudente.statoValutazione}"
                     th:classappend="${iscrizionestudente.statoValutazione == 'Rifiutato'} ? 'red-text'">
-                    Stato
+                    Status
                 </td>
                 <div th:if="${iscrizionestudente.statoValutazione == 'Rifiutato'}">
-                    <td>il voto è stato rifiutato</td>
+                    <td>The grade has been rejected</td>
                 </div>
                 <td th:text="${appellostudente.dataAppello}"></td>
                 <td th:text="${corsostudente.nome}">nome</td>
@@ -130,7 +130,7 @@
                             <input type="hidden" name="idStudente" th:value="${iscrizionestudente.idStudente}" />
                             <input type="hidden" name="idAppello" th:value="${iscrizionestudente.idAppello}" />
                             <input type="hidden" name="idCorso" th:value="${idCorsoStudente}" />
-                            <button type="submit">Rifiuta</button>
+                            <button type="submit">Reject</button>
                         </form>
                     </div>
                 </td>
@@ -141,7 +141,7 @@
 
     <!-- Messaggio se lo stato NON è Pubblicato -->
     <div th:if="${iscrizionestudente.statoValutazione == 'Inserito' or iscrizionestudente.statoValutazione == 'Non inserito'} ">
-        <p>Voto ancora non definito.</p>
+        <p>Grade not yet defined.</p>
     </div>
 </div>
 <div class="container" th:if="${IscrizionPresente == 0}">

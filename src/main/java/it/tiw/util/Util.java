@@ -42,9 +42,9 @@ public class Util {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(fromEmail));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            message.setSubject("New Grades has been Published");
+            message.setSubject("New Grades Have Been Published");
             message.setContent(
-                    "Dear Student, new grades has been published.!<br>" +
+                    "Dear Student, new grades have been published.!<br>" +
                             "<a href='http://localhost:8080/tiw/'>Click here to open the portal</a>",
                     "text/html"
             );
