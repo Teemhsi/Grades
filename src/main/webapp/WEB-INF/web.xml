@@ -78,6 +78,8 @@
         <url-pattern>/Verbali</url-pattern>
         <url-pattern>/VerbalizzaIscritti</url-pattern>
         <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/InserimentoMultiplo</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
 
         <url-pattern>/student-home</url-pattern>
         <url-pattern>/AppelliStudente</url-pattern>
@@ -85,6 +87,7 @@
         <url-pattern>/RifiutaVoto</url-pattern>
 
         <url-pattern>/professorHome.html</url-pattern>
+        <url-pattern>/student.html</url-pattern>
 
         <url-pattern>/Funcase</url-pattern>
     </filter-mapping>
@@ -100,6 +103,7 @@
         <url-pattern>/Verbali</url-pattern>
         <url-pattern>/VerbalizzaIscritti</url-pattern>
         <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
         <url-pattern>/professorHome.html</url-pattern>
     </filter-mapping>
 
