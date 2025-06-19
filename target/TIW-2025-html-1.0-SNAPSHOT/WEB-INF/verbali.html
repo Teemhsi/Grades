@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Verbali Studenti</title>
+    <title>Student Reports</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
         table {
@@ -67,7 +67,7 @@
 <body>
 
 <header>
-    <h1>Verbali degli Studenti</h1>
+    <h1>Student Reports</h1>
     <div class="user-info">
         <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
         <span th:text="'Role: ' + ${session.user.ruolo}">Role: professor</span>
@@ -84,32 +84,36 @@
 </nav>
 
 <div class="container">
-    <h3>Elenco verbali verbalizzati</h3>
+    <h3>List of Recorder Reports</h3>
     <h3 th:text="'Total Verbals created: ' + ${verbali.size()}">0</h3>
 
     <table th:if="${verbali.size() > 0}">
         <thead>
         <tr>
-            <th>Codice Verbale</th>
-            <th>Data Creazione</th>
-            <th>Azioni</th>
+            <th>ID Report</th>
+            <th>Creation Date</th>
+            <th>Course</th>
+            <th>Exam Date</th>
+            <th>Action</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="entry : ${verbali}">
             <td th:text="${entry.codiceVerbale}">VER-123-456789</td>
             <td th:text="${#dates.format(entry.dataCreazione, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 10:30:00</td>
+            <td th:text="${entry.nomeCorso}"></td>
+            <td th:text="${entry.dataAppello}"></td>
             <td>
                 <a th:href="@{/DettaglioVerbale(codice=${entry.codiceVerbale})}"
                    class="verbale-link">
-                    Visualizza Dettagli
+                    View Details
                 </a>
             </td>
         </tr>
         </tbody>
     </table>
 
-    <p th:if="${verbali.size() == 0}">Nessun verbale disponibile.</p>
+    <p th:if="${verbali.size() == 0}">No reports available.</p>
 </div>
 
 <footer>

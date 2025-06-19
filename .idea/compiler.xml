@@ -9,8 +9,5 @@
         <module name="TIW-2025-html" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="TIW-2025-html" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>

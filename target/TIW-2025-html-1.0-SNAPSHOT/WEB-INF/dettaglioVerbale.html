@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Dettaglio Verbale</title>
+  <title>Report Details</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
     table {
@@ -65,7 +65,7 @@
 <body>
 
 <header>
-  <h1>Dettaglio Verbale</h1>
+  <h1>Report Details</h1>
   <div class="user-info">
     <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
     <span th:text="'Role: ' + ${session.user.ruolo}">Role: professor</span>
@@ -83,22 +83,22 @@
 
 <div class="container">
   <div class="verbale-info" th:if="${dettagliVerbale.size() > 0}">
-    <h4 th:text="'Codice Verbale: ' + ${codiceVerbale}">VER-123-456789</h4>
-    <p th:text="'Data Creazione: ' + ${#dates.format(dettagliVerbale[0].verbale.dataCreazione, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 10:30:00</p>
-    <p th:text="'Data Appello: ' + ${dettagliVerbale[0].dataAppello}">01/01/2025</p>
-    <p th:text="'Corso: ' + ${dettagliVerbale[0].nomeCorso}">Nome Corso</p>
+    <h4 th:text="'ID Report: ' + ${codiceVerbale}">VER-123-456789</h4>
+    <p th:text="'Creation Date: ' + ${#dates.format(dettagliVerbale[0].verbale.dataCreazione, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 10:30:00</p>
+    <p th:text="'Exam Date: ' + ${dettagliVerbale[0].dataAppello}">01/01/2025</p>
+    <p th:text="'Course: ' + ${dettagliVerbale[0].nomeCorso}">Nome Corso</p>
   </div>
 
-  <h3>Studenti nel Verbale</h3>
-  <h3 th:text="'Totale studenti: ' + ${dettagliVerbale.size()}">0</h3>
+  <h3>Report's Students</h3>
+  <h3 th:text="'Total Students: ' + ${dettagliVerbale.size()}">0</h3>
 
   <table th:if="${dettagliVerbale.size() > 0}">
     <thead>
     <tr>
-      <th>Matricola</th>
-      <th>Nome</th>
-      <th>Cognome</th>
-      <th>Voto</th>
+      <th>ID Number</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Grade</th>
     </tr>
     </thead>
     <tbody>
@@ -114,7 +114,7 @@
     </tbody>
   </table>
 
-  <p th:if="${dettagliVerbale.size() == 0}">Nessun dettaglio disponibile per questo verbale.</p>
+  <p th:if="${dettagliVerbale.size() == 0}">No details available for this report.</p>
 </div>
 
 <footer>

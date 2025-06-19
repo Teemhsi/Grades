@@ -53,7 +53,7 @@
         <dependency>
             <groupId>ognl</groupId>
             <artifactId>ognl</artifactId>
-            <version>3.3.1</version> <!-- or the latest version -->
+            <version>3.3.4</version> <!-- or the latest version -->
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>

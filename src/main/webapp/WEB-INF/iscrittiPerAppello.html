@@ -102,6 +102,7 @@
   <table th:if="${iscritti.size() > 0}">
     <thead>
     <tr>
+      <th>Student ID</th>
       <th>
         <a th:href="@{/IscrittiAppello(idAppello=${idAppello}, idCorso=${idCorso}, sortField='matricola', sortDir=${sortField == 'matricola' && sortDir == 'asc' ? 'desc' : 'asc'})}">
           ID Number
@@ -155,7 +156,7 @@
     </thead>
     <tbody>
     <tr th:each="studente : ${iscritti}">
-      <td th:text="${studente.idUtente}">student id</td>
+      <td th:text="${studente.idUtente}">Student ID</td>
       <td th:text="${studente.matricola}">ID Number</td>
       <td th:text="${studente.cognome}">Last Name</td>
       <td th:text="${studente.nome}">First Name</td>

@@ -30,7 +30,7 @@
 
 <div class="container" th:if="${corsi.size() > 0}">
   <p>As a professor, you can manage your courses and students here. Select one of your courses below.</p>
-  <p>Total Courses Held: <span th:text="${corsi.size}">0</span></p>
+  <!--  <p>Total Courses Held: <span th:text="${corsi.size}">0</span></p> -->
 
   <div class="course-list">
     <div th:each="corso : ${corsi}" class="course-item">

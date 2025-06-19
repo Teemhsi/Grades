@@ -15,7 +15,7 @@
   <h1>Seleziona un Appello</h1>
   <div class="user-info">
     <span th:text="'Email: ' + ${session.user.email}">user@example.com</span><br>
-    <span th:text="'Role:  ' + ${session.user.ruolo}">Role: professor</span>
+    <span th:text="'Role:  ' + ${session.user.ruolo}">Role: Professor</span>
   </div>
 </header>
 
@@ -28,11 +28,12 @@
   </div>
 </nav>
 
+<!--
 <div class="course-info">
-  <p>(DEBUG): Select a call for course ID <span th:text="${idCorso}">ID Corso</span>.</p>
-  <p>Total Calls Found: <span th:text="${appelli.size}">0</span></p>
-
+   <p>(DEBUG): Select a call for course ID <span th:text="${idCorso}">ID Corso</span>.</p>
+   <p>Total Calls Found: <span th:text="${appelli.size}">0</span></p>
 </div>
+-->
 
 <div class="appello-list">
   <div th:each="appello : ${appelli}" class="appello-item">

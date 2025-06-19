@@ -13,7 +13,7 @@
     </context-param>
     <context-param>
         <param-name>dbPassword</param-name>
-        <param-value>root</param-value>
+        <param-value>tomatoma</param-value>
     </context-param>
     <context-param>
         <param-name>dbDriver</param-name>
@@ -52,6 +52,15 @@
         <filter-name>LoginCheck</filter-name>
         <filter-class>it.tiw.filter.IsLoggedGloballyCheck</filter-class>
     </filter>
+    <filter>
+        <filter-name>ProfesorChecker</filter-name>
+        <filter-class>it.tiw.filter.professorFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>StudentChecker</filter-name>
+        <filter-class>it.tiw.filter.studentFilter</filter-class>
+    </filter>
 
     <filter-mapping>
         <filter-name>LoginCheck</filter-name>
@@ -63,6 +72,7 @@
         <url-pattern>/Verbali</url-pattern>
         <url-pattern>/VerbalizzaIscritti</url-pattern>
         <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
 
         <url-pattern>/student-home</url-pattern>
         <url-pattern>/AppelliStudente</url-pattern>
@@ -71,9 +81,32 @@
 
         <url-pattern>/Funcase</url-pattern>
 
+    </filter-mapping>
 
+
+    <filter-mapping>
+        <filter-name>ProfesorChecker</filter-name>
+        <url-pattern>/professor-home</url-pattern>
+        <url-pattern>/Appelli</url-pattern>
+        <url-pattern>/IscrittiAppello</url-pattern>
+        <url-pattern>/ModificaVoto</url-pattern>
+        <url-pattern>/PubblicaVoti</url-pattern>
+        <url-pattern>/Verbali</url-pattern>
+        <url-pattern>/VerbalizzaIscritti</url-pattern>
+        <url-pattern>/VisualizzaFormModificaVoto</url-pattern>
+        <url-pattern>/DettaglioVerbale</url-pattern>
 
     </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>StudentChecker</filter-name>
+        <url-pattern>/student-home</url-pattern>
+        <url-pattern>/AppelliStudente</url-pattern>
+        <url-pattern>/GestioneVotiStudente</url-pattern>
+        <url-pattern>/RifiutaVoto</url-pattern>
+
+    </filter-mapping>
+
     <servlet>
         <servlet-name>IndexRedirectServlet</servlet-name>
         <servlet-class>it.tiw.controller.IndexRedirectServlet</servlet-class>
