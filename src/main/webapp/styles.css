@@ -124,3 +124,61 @@ footer {
     width: 100%;
     bottom: 0;
 }
+.login-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px 40px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-container h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.login-container p {
+    margin-bottom: 25px;
+    color: #666;
+}
+
+.login-container .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.login-container .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.login-container input[type="email"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Assicura che padding non alteri la larghezza totale */
+    font-size: 1em;
+}
+
+.login-container .form-error {
+    margin: 15px 0;
+    color: #e74c3c;
+    font-weight: bold;
+    min-height: 20px; /* Evita che il layout si sposti quando appare un errore */
+}
+
+.login-container .form-action input[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+    border: none;
+    cursor: pointer;
+}

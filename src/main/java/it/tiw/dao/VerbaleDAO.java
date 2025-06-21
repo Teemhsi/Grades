@@ -64,6 +64,7 @@ public class VerbaleDAO {
             }
         }
     }
+
     public String creaVerbaleConIscrizioni(int idAppello) throws SQLException {
         String selectIscrizioniSQL = "SELECT id_studente, voto, stato_valutazione " +
                 "FROM Iscrizioni " +

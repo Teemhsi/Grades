@@ -3,35 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="loginstyle.css">
+    <link rel="stylesheet" href="styles.css">
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <script type="module" src="javascript/login.js" defer></script>
 </head>
 <body>
-<div class="divLogin">
-    <h2 style="text-align: center;">Welcome!</h2>
-    <h4 style="text-align: center;">Please enter your credentials to log in</h4>
+<header>
+    <h1>Grades Portal Login</h1>
+</header>
 
-    <form action="LoginHandler" method="post">
-        <table class="loginTable">
-            <tr>
-                <td><input type="email" name="email" placeholder="Email" required></td>
-            </tr>
-            <tr>
-                <td><input type="password" name="password" placeholder="Password" required></td>
-            </tr>
-            <!-- Error message row -->
-            <tr th:if="${errorMsg}">
-                <td colspan="2" style="color: red; text-align: center;" th:text="${errorMsg}"></td>
-            </tr>
-            <!-- Submit button row -->
-            <tr>
-                <td style="text-align: center;" colspan="2"><input type="submit" value="Login"></td>
-            </tr>
-        </table>
-    </form>
+<div class="container">
+    <div class="login-container">
+        <h2>Welcome!</h2>
+        <p>Please enter your credentials to log in</p>
 
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" placeholder="mario.rossi@uni.it" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <div class="form-error">
+                <span id="error-message"></span>
+            </div>
+
+            <div class="form-action">
+                <input type="submit" value="Login" class="select-button">
+            </div>
+        </form>
+    </div>
 </div>
+
+<footer>
+    <p>&copy; 2025 Grades Portal. All Rights Reserved.</p>
+</footer>
 </body>
 </html>
