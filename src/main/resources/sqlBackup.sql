@@ -281,7 +281,7 @@ CREATE TABLE `Iscrizioni` (
 
 INSERT INTO `Iscrizioni` VALUES
 -- Appello 1 (Algoritmi - 2025-02-01)
-(3, 1, '30 e lode', 'Verbalizzato'),  -- Anna Verdi
+(3, 1, '30 e lode', 'Pubblicato'),  -- Anna Verdi
 (4, 1, '22', 'Verbalizzato'),         -- Carlo Neri
 (5, 1, '19', 'Verbalizzato'),         -- Dario Gialli
 (6, 1, '28', 'Verbalizzato'),         -- Marco Blu

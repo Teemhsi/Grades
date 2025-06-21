@@ -86,6 +86,7 @@ public class StudenteDAO {
 
         return studenti;
     }
+
     public List<Studente> getIscrittiOrdinati(int idAppello, int idCorso, int docenteId) throws SQLException {
         String query =
                 "SELECT s.id_utente, s.matricola, s.cognome, s.nome, u.email, s.corso_di_laurea, i.voto, i.stato_valutazione " +
