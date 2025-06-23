@@ -54,7 +54,7 @@ public class IscrizioneDAO {
                 throw e;
             }
         } finally {
-            connection.setAutoCommit(true); // Always reset autocommit
+            connection.setAutoCommit(true); // reset autocommit
         }
 
         return success;
