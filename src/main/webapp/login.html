@@ -7,7 +7,6 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <script type="module" src="javascript/login.js" defer></script>
 </head>
 <body>
 <header>
@@ -19,7 +18,7 @@
         <h2>Welcome!</h2>
         <p>Please enter your credentials to log in</p>
 
-        <form id="login-form">
+        <form id="login-form" action="LoginHandler" method="post">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input id="email" type="email" name="email" placeholder="mario.rossi@uni.it" required>
@@ -29,8 +28,9 @@
                 <input id="password" type="password" name="password" placeholder="Password" required>
             </div>
 
-            <div class="form-error">
-                <span id="error-message"></span>
+            <!-- Error message div - properly styled -->
+            <div class="form-error" th:if="${errorMsg}" style="color: red; text-align: center; margin: 10px 0; font-weight: bold;">
+                <span th:text="${errorMsg}"></span>
             </div>
 
             <div class="form-action">
