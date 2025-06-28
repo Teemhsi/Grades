@@ -94,7 +94,7 @@ public class ModificaVotoServlet extends HttpServlet {
             return;
         }
 
-        String votoSanitized = votoStr.trim().toLowerCase();
+        String votoSanitized = votoStr.trim();
 
         // Controllo validità voto (case sensitive)
         boolean votoValido = VALID_VOTI.stream()
