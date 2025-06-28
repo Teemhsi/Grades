@@ -99,8 +99,8 @@ public class ModificaVotoServlet extends HttpServlet {
             return;
         }
 
-        // Normalizza il voto per il confronto (tutto lowercase)
-        String votoNormalizzato = votoStr.trim().toLowerCase();
+        // Normalizza il voto per il confronto
+        String votoNormalizzato = votoStr.trim();
 
         // Controllo validità voto (case insensitive)
         boolean votoValido = VALID_VOTI.stream()
