@@ -102,9 +102,9 @@ public class ModificaVotoServlet extends HttpServlet {
         // Normalizza il voto per il confronto
         String votoNormalizzato = votoStr.trim();
 
-        // Controllo validità voto (case insensitive)
+        // Controllo validità voto
         boolean votoValido = VALID_VOTI.stream()
-                .anyMatch(validVote -> validVote.toLowerCase().equals(votoNormalizzato));
+                .anyMatch(validVote -> validVote.equals(votoNormalizzato));
 
         if (!votoValido) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
