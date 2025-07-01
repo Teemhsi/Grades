@@ -65,6 +65,13 @@ public class VerbaleDAO {
         }
     }
 
+    /***
+     *
+     * Selezione: recupera tutte le iscrizioni con stato "Pubblicato" o "Rifiutato" per l'appello specificato
+     * Inserimento verbale: crea il record principale del verbale nella tabella Verbali
+     * Inserimento dettaglio: aggiunge i singoli risultati nella tabella DettaglioVerbale
+     * Aggiornamento iscrizioni: cambia lo stato delle iscrizioni da "Pubblicato/Rifiutato" a "Verbalizzato"
+     */
     public String creaVerbaleConIscrizioni(int idAppello) throws SQLException {
         String selectIscrizioniSQL = "SELECT id_studente, voto, stato_valutazione " +
                 "FROM Iscrizioni " +
